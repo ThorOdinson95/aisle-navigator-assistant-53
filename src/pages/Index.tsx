@@ -44,21 +44,38 @@ const Index = () => {
     const getDepartment = (name: string): string => {
       const lowerCaseName = name.toLowerCase();
       // From most specific to least specific
+      if (lowerCaseName.includes('auto') && !lowerCaseName.includes('accessories')) return 'Auto Care Center';
+      if (lowerCaseName.includes('accessories')) return 'Auto Accessories';
       if (lowerCaseName.includes('wrench') || lowerCaseName.includes('tool')) return 'Tools & Hardware';
+      if (lowerCaseName.includes('outdoor')) return 'Outdoor';
+      if (lowerCaseName.includes('sport')) return 'Sports & Outdoors';
       if (lowerCaseName.includes('lego') || lowerCaseName.includes('game') || lowerCaseName.includes('toy')) return 'Toys & Games';
       if (lowerCaseName.includes('book')) return 'Books';
+      if (lowerCaseName.includes('craft')) return 'Arts & Crafts';
+      if (lowerCaseName.includes('seasonal') || lowerCaseName.includes('celebrate')) return 'Seasonal';
       if (lowerCaseName.includes('tv') || lowerCaseName.includes('electronic')) return 'Electronics';
+      if (lowerCaseName.includes('office')) return 'Home Office';
+      if (lowerCaseName.includes('furniture') || lowerCaseName.includes('bedding') || lowerCaseName.includes('bath') || lowerCaseName.includes('home')) return 'Home';
+      if (lowerCaseName.includes('cookware') || lowerCaseName.includes('kitchen') || lowerCaseName.includes('dining')) return 'Kitchen & Dining';
+      if (lowerCaseName.includes('towel') || lowerCaseName.includes('paper') || lowerCaseName.includes('laundry') || lowerCaseName.includes('cleaning')) return 'Paper & Cleaning';
+      if (lowerCaseName.includes('dog') || lowerCaseName.includes('cat') || lowerCaseName.includes('pet')) return 'Pet Care';
+      if (lowerCaseName.includes('shampoo') || lowerCaseName.includes('beauty') || lowerCaseName.includes('toothpaste') || lowerCaseName.includes('soap') || lowerCaseName.includes('personal care')) return 'Personal Care & Beauty';
+      if (lowerCaseName.includes('pharmacy')) return 'Pharmacy';
       if (lowerCaseName.includes('milk') || lowerCaseName.includes('cheese') || lowerCaseName.includes('eggs') || lowerCaseName.includes('yogurt')) return 'Dairy';
       if (lowerCaseName.includes('chicken') || lowerCaseName.includes('ham') || lowerCaseName.includes('deli')) return 'Deli';
       if (lowerCaseName.includes('banana') || lowerCaseName.includes('avocado') || lowerCaseName.includes('produce') || lowerCaseName.includes('fresh') || lowerCaseName.includes('apple')) return 'Fresh Produce';
       if (lowerCaseName.includes('bakery') || lowerCaseName.includes('bread')) return 'Bakery';
-      if (lowerCaseName.includes('towel') || lowerCaseName.includes('paper') || lowerCaseName.includes('laundry') || lowerCaseName.includes('cleaning')) return 'Paper & Cleaning';
-      if (lowerCaseName.includes('dog') || lowerCaseName.includes('cat') || lowerCaseName.includes('pet')) return 'Pet Care';
-      if (lowerCaseName.includes('shampoo') || lowerCaseName.includes('beauty') || lowerCaseName.includes('toothpaste') || lowerCaseName.includes('soap')) return 'Personal Care & Beauty';
-      if (lowerCaseName.includes('cookware') || lowerCaseName.includes('kitchen') || lowerCaseName.includes('dining')) return 'Kitchen & Dining';
       if (lowerCaseName.includes('frozen')) return 'Frozen';
       if (lowerCaseName.includes('snack') || lowerCaseName.includes('chips')) return 'Snacks';
       if (lowerCaseName.includes('candy')) return 'Candy';
+      if (lowerCaseName.includes('beverage')) return 'Adult Beverages';
+      if (lowerCaseName.includes('shoe')) return 'Shoes';
+      if (lowerCaseName.includes('men')) return 'Mens';
+      if (lowerCaseName.includes('ladies') || lowerCaseName.includes('women')) return 'Ladies';
+      if (lowerCaseName.includes('boy')) return 'Boys';
+      if (lowerCaseName.includes('girl')) return 'Girls';
+      if (lowerCaseName.includes('baby')) return 'Baby';
+      
       return 'Grocery'; // Default department
     };
 

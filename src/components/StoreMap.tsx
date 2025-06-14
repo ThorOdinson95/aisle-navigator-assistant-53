@@ -9,40 +9,50 @@ interface StoreMapProps {
 }
 
 const departmentLocations: { [key: string]: { top: string; left: string } } = {
+  // Left Side
   'Auto Care Center': { top: '35%', left: '10%' },
-  'Sports & Outdoors': { top: '15%', left: '18%' },
-  'Toys & Games': { top: '15%', left: '30%' },
-  'Electronics': { top: '15%', left: '42%' },
-  'Home Office': { top: '15%', left: '55%' },
+  'Sports & Outdoors': { top: '15%', left: '23%' },
+  'Auto Accessories': { top: '50%', left: '23%' },
+  'Tools & Hardware': { top: '68%', left: '23%' },
+  'Outdoor': { top: '85%', left: '15%' },
+  'Personal Care & Beauty': { top: '80%', left: '38%' },
+  'Pharmacy': { top: '80%', left: '48%' },
+
+  // Center Area
+  'Home': { top: '45%', left: '35%' }, // covers Furniture, Bedding, Bath
+  'Kitchen & Dining': { top: '65%', left: '35%' },
+  'Toys & Games': { top: '15%', left: '35%' },
+  'Electronics': { top: '15%', left: '48%' },
+  'Home Office': { top: '15%', left: '60%' },
+  'Books': { top: '30%', left: '48%' },
+  'Arts & Crafts': { top: '40%', left: '48%' },
+  'Seasonal': { top: '52%', left: '48%' }, // covers Celebrate, Seasonal
+  'Boys': { top: '30%', left: '65%' },
+  'Girls': { top: '30%', left: '70%' },
+  'Baby': { top: '35%', left: '75%' },
+  'Shoes': { top: '45%', left: '60%' },
+  'Mens': { top: '65%', left: '60%' },
+  'Ladies': { top: '55%', left: '70%' },
+
+  // Top Right
   'Paper & Cleaning': { top: '15%', left: '68%' },
   'Pet Care': { top: '15%', left: '78%' },
   'Restrooms': { top: '10%', left: '73%' },
-  'Dairy': { top: '10%', left: '92%' },
+
+  // Far Right (Groceries)
   'Deli': { top: '15%', left: '92%' },
-  'Snacks': { top: '25%', left: '92%' },
-  'Candy': { top: '33%', left: '92%' },
-  'Grocery': { top: '45%', left: '92%' },
+  'Dairy': { top: '10%', left: '92%' },
+  'Adult Beverages': { top: '20%', left: '92%' },
+  'Snacks': { top: '30%', left: '92%' },
+  'Candy': { top: '38%', left: '92%' },
+  'Grocery': { top: '48%', left: '92%' },
   'Meat': { top: '55%', left: '88%' },
   'Frozen': { top: '65%', left: '92%' },
-  'Fresh Produce': { top: '78%', left: '92%' },
   'Bakery': { top: '78%', left: '85%' },
-  'Checkout': { top: '80%', left: '55%' },
-  'Pharmacy': { top: '85%', left: '38%' },
-  'Personal Care & Beauty': { top: '85%', left: '25%' },
-  'Tools & Hardware': { top: '65%', left: '15%' },
-  'Outdoor': { top: '75%', left: '10%' },
-  'Accessories': { top: '50%', left: '18%' },
-  'Home': { top: '40%', left: '30%' },
-  'Kitchen & Dining': { top: '65%', left: '35%' },
-  'Books': { top: '35%', left: '42%' },
-  'Arts & Crafts': { top: '45%', left: '42%' },
-  'Celebration': { top: '55%', left: '42%' },
-  'Jewelry': { top: '65%', left: '42%' },
-  'Shoes': { top: '40%', left: '55%' },
-  'Boys': { top: '35%', left: '60%' },
-  'Girls': { top: '35%', left: '65%' },
-  'Baby': { top: '35%', left: '75%' },
-  'Ladies': { top: '55%', left: '70%' },
+  'Fresh Produce': { top: '78%', left: '92%' },
+
+  // Bottom Area
+  'Checkout': { top: '80%', left: '65%' },
   'Entrance': { top: '95%', left: '50%' },
 };
 
@@ -79,13 +89,15 @@ const StoreMap = ({ items }: StoreMapProps) => {
   const [cartPosition, setCartPosition] = useState(departmentLocations['Entrance']);
 
   useEffect(() => {
-    const nextUncheckedItem = items.find(item => !item.checked);
+    // Only consider items that have a valid department on the map
+    const locatableItems = items.filter(item => departmentLocations[item.department]);
+    const nextUncheckedItem = locatableItems.find(item => !item.checked);
     
     if (nextUncheckedItem) {
-      const location = departmentLocations[nextUncheckedItem.department] || departmentLocations['Entrance'];
+      const location = departmentLocations[nextUncheckedItem.department];
       setCartPosition(location);
     } else if (items.length > 0) {
-      // All items checked, move to checkout
+      // All items checked or remaining items are not locatable, move to checkout
       setCartPosition(departmentLocations['Checkout']);
     } else {
       // List is empty, stay at entrance
@@ -94,17 +106,21 @@ const StoreMap = ({ items }: StoreMapProps) => {
   }, [items]);
 
   const shortestPath = useMemo(() => {
-    const nextUncheckedItem = items.find(item => !item.checked);
+    // Filter out items that don't have a department on the map to prevent errors
+    const validItems = items.filter(i => departmentLocations[i.department]);
+    const nextUncheckedItem = validItems.find(item => !item.checked);
     if (!nextUncheckedItem) return [];
 
-    const allUncheckedDepts = [...new Set(items.filter(i => !i.checked).map(i => i.department))];
+    const allUncheckedDepts = [...new Set(validItems.filter(i => !i.checked).map(i => i.department))];
     const startDeptName = nextUncheckedItem.department;
     const deptsForTsp = allUncheckedDepts.filter(d => d !== startDeptName);
     
     let optimalOrder: string[] = [];
 
     if (deptsForTsp.length > 0) {
-        if (deptsForTsp.length === 1) {
+        if (deptsForTsp.length > 8) { // Heuristic to avoid freezing browser for large lists
+            optimalOrder = deptsForTsp; // Path will be suboptimal but UI won't freeze
+        } else if (deptsForTsp.length === 1) {
             optimalOrder = deptsForTsp;
         } else {
             const permutations = getPermutations(deptsForTsp);
@@ -144,7 +160,7 @@ const StoreMap = ({ items }: StoreMapProps) => {
       <CardContent>
         <div className="relative w-full">
           <img 
-            src="/lovable-uploads/7f0509dc-90d3-4115-8716-d018fb6b4570.png" 
+            src="/lovable-uploads/55b86e5f-e2b8-4538-bea6-86a63f6504e9.png" 
             alt="Walmart store map"
             className="w-full h-auto rounded-lg"
           />

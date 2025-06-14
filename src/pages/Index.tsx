@@ -1,10 +1,10 @@
-import Deals from "@/components/Deals";
+import StoreDeals from "@/components/StoreDeals";
+import PersonalizedSuggestions from "@/components/PersonalizedSuggestions";
 import ShoppingList from "@/components/ShoppingList";
 import StoreMap from "@/components/StoreMap";
 import { Store } from "lucide-react";
 import { useState } from "react";
 import type { ProductSuggestion } from "@/data/products";
-import Alternatives from "@/components/Alternatives";
 
 // Added department to each item for mapping
 const initialShoppingItems = [
@@ -96,8 +96,8 @@ const Index = () => {
             <StoreMap items={shoppingItems} />
           </div>
           <div className="lg:col-span-1 flex flex-col gap-6">
-            <Deals items={shoppingItems} />
-            <Alternatives items={shoppingItems} />
+            <StoreDeals />
+            <PersonalizedSuggestions items={shoppingItems} />
           </div>
         </main>
       </div>

@@ -1,3 +1,4 @@
+
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Map, ShoppingCart } from "lucide-react";
 import React, { useEffect, useState, useMemo } from 'react';
@@ -8,26 +9,40 @@ interface StoreMapProps {
 }
 
 const departmentLocations: { [key: string]: { top: string; left: string } } = {
-  'Sports & Outdoors': { top: '15%', left: '15%' },
+  'Auto Care Center': { top: '35%', left: '10%' },
+  'Sports & Outdoors': { top: '15%', left: '18%' },
   'Toys & Games': { top: '15%', left: '30%' },
-  'Electronics': { top: '15%', left: '45%' },
-  'Home Office': { top: '15%', left: '60%' },
-  'Paper & Cleaning': { top: '20%', left: '70%' },
-  'Pet Care': { top: '20%', left: '80%' },
-  'Auto Care Center': { top: '25%', left: '10%' },
+  'Electronics': { top: '15%', left: '42%' },
+  'Home Office': { top: '15%', left: '55%' },
+  'Paper & Cleaning': { top: '15%', left: '68%' },
+  'Pet Care': { top: '15%', left: '78%' },
+  'Restrooms': { top: '10%', left: '73%' },
+  'Dairy': { top: '10%', left: '92%' },
+  'Deli': { top: '15%', left: '92%' },
+  'Snacks': { top: '25%', left: '92%' },
+  'Candy': { top: '33%', left: '92%' },
+  'Grocery': { top: '45%', left: '92%' },
+  'Meat': { top: '55%', left: '88%' },
+  'Frozen': { top: '65%', left: '92%' },
+  'Fresh Produce': { top: '78%', left: '92%' },
+  'Bakery': { top: '78%', left: '85%' },
+  'Checkout': { top: '80%', left: '55%' },
+  'Pharmacy': { top: '85%', left: '38%' },
+  'Personal Care & Beauty': { top: '85%', left: '25%' },
+  'Tools & Hardware': { top: '65%', left: '15%' },
+  'Outdoor': { top: '75%', left: '10%' },
+  'Accessories': { top: '50%', left: '18%' },
   'Home': { top: '40%', left: '30%' },
   'Kitchen & Dining': { top: '65%', left: '35%' },
-  'Personal Care & Beauty': { top: '85%', left: '25%' },
-  'Pharmacy': { top: '85%', left: '40%' },
-  'Checkout': { top: '85%', left: '60%' },
-  'Dairy': { top: '10%', left: '92%' },
-  'Deli': { top: '20%', left: '92%' },
-  'Snacks': { top: '35%', left: '92%' },
-  'Candy': { top: '45%', left: '92%' },
-  'Grocery': { top: '55%', left: '92%' },
-  'Frozen': { top: '75%', left: '92%' },
-  'Bakery': { top: '85%', left: '82%' },
-  'Produce': { top: '85%', left: '92%' },
+  'Books': { top: '35%', left: '42%' },
+  'Arts & Crafts': { top: '45%', left: '42%' },
+  'Celebration': { top: '55%', left: '42%' },
+  'Jewelry': { top: '65%', left: '42%' },
+  'Shoes': { top: '40%', left: '55%' },
+  'Boys': { top: '35%', left: '60%' },
+  'Girls': { top: '35%', left: '65%' },
+  'Baby': { top: '35%', left: '75%' },
+  'Ladies': { top: '55%', left: '70%' },
   'Entrance': { top: '95%', left: '50%' },
 };
 
@@ -129,7 +144,7 @@ const StoreMap = ({ items }: StoreMapProps) => {
       <CardContent>
         <div className="relative w-full">
           <img 
-            src="/lovable-uploads/20db70f7-42b1-4c52-a705-14232c72cd28.png" 
+            src="/lovable-uploads/7f0509dc-90d3-4115-8716-d018fb6b4570.png" 
             alt="Walmart store map"
             className="w-full h-auto rounded-lg"
           />

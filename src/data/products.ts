@@ -9,9 +9,9 @@ export const productSuggestions: ProductSuggestion[] = [
   { name: 'Shredded Mozzarella Cheese, 16 oz', department: 'Dairy' },
   { name: 'Marketside Rotisserie Chicken', department: 'Deli' },
   { name: 'Black Forest Ham, Sliced, 1 lb', department: 'Deli' },
-  { name: 'Freshness Guaranteed Bananas, 2 lbs', department: 'Produce' },
-  { name: 'Avocados, Bag of 4', department: 'Produce' },
-  { name: 'Organic Spring Mix Salad, 5 oz', department: 'Produce' },
+  { name: 'Freshness Guaranteed Bananas, 2 lbs', department: 'Fresh Produce' },
+  { name: 'Avocados, Bag of 4', department: 'Fresh Produce' },
+  { name: 'Organic Spring Mix Salad, 5 oz', department: 'Fresh Produce' },
   { name: 'Great Value Creamy Peanut Butter', department: 'Grocery' },
   { name: 'Quaker Instant Oatmeal, Variety Pack', department: 'Grocery' },
   { name: 'Coca-Cola, 12 pack', department: 'Grocery' },
@@ -24,5 +24,7 @@ export const productSuggestions: ProductSuggestion[] = [
   { name: 'Purina ONE Dry Dog Food', department: 'Pet Care' },
   { name: 'T-fal 20-piece Cookware Set', department: 'Kitchen & Dining' },
   { name: 'Samsung 55" 4K Smart TV', department: 'Electronics' },
+  { name: 'LEGO Star Wars Set', department: 'Toys & Games' },
+  { name: 'Paperback Bestseller', department: 'Books' },
+  { name: 'Wrench Set, 20-piece', department: 'Tools & Hardware' },
 ];
-

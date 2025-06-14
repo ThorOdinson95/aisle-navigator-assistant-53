@@ -1,3 +1,4 @@
+
 import StoreDeals from "@/components/StoreDeals";
 import PersonalizedSuggestions from "@/components/PersonalizedSuggestions";
 import ShoppingList from "@/components/ShoppingList";
@@ -10,9 +11,9 @@ import type { ProductSuggestion } from "@/data/products";
 const initialShoppingItems = [
   { id: 1, name: "Great Value Milk, 1 Gallon", checked: true, department: "Dairy" },
   { id: 2, name: "Marketside Rotisserie Chicken", checked: false, department: "Deli" },
-  { id: 3, name: "Freshness Guaranteed Bananas, 2 lbs", checked: false, department: "Produce" },
+  { id: 3, name: "Freshness Guaranteed Bananas, 2 lbs", checked: false, department: "Fresh Produce" },
   { id: 4, name: "Large Cage-Free Eggs, 12 ct", checked: false, department: "Dairy" },
-  { id: 5, name: "Avocados, Bag of 4", checked: true, department: "Produce" },
+  { id: 5, name: "Avocados, Bag of 4", checked: true, department: "Fresh Produce" },
   { id: 6, name: "Great Value Creamy Peanut Butter", checked: false, department: "Grocery" },
   { id: 7, name: "Member's Mark Paper Towels, 12 rolls", checked: false, department: "Paper & Cleaning" },
 ];
@@ -42,15 +43,22 @@ const Index = () => {
     // A simple way to guess the department from the name for the demo
     const getDepartment = (name: string): string => {
       const lowerCaseName = name.toLowerCase();
-      if (lowerCaseName.includes('milk') || lowerCaseName.includes('cheese') || lowerCaseName.includes('eggs')) return 'Dairy';
-      if (lowerCaseName.includes('chicken') || lowerCaseName.includes('deli')) return 'Deli';
-      if (lowerCaseName.includes('banana') || lowerCaseName.includes('avocado') || lowerCaseName.includes('produce') || lowerCaseName.includes('fresh')) return 'Produce';
-      if (lowerCaseName.includes('bread') || lowerCaseName.includes('bakery')) return 'Bakery';
-      if (lowerCaseName.includes('cereal') || lowerCaseName.includes('snacks') || lowerCaseName.includes('candy') || lowerCaseName.includes('grocery') || lowerCaseName.includes('butter')) return 'Grocery';
-      if (lowerCaseName.includes('tv') || lowerCaseName.includes('electronics')) return 'Electronics';
-      if (lowerCaseName.includes('game') || lowerCaseName.includes('toy')) return 'Toys & Games';
-      if (lowerCaseName.includes('towel') || lowerCaseName.includes('paper')) return 'Paper & Cleaning';
-      if (lowerCaseName.includes('shampoo') || lowerCaseName.includes('beauty')) return 'Personal Care & Beauty';
+      // From most specific to least specific
+      if (lowerCaseName.includes('wrench') || lowerCaseName.includes('tool')) return 'Tools & Hardware';
+      if (lowerCaseName.includes('lego') || lowerCaseName.includes('game') || lowerCaseName.includes('toy')) return 'Toys & Games';
+      if (lowerCaseName.includes('book')) return 'Books';
+      if (lowerCaseName.includes('tv') || lowerCaseName.includes('electronic')) return 'Electronics';
+      if (lowerCaseName.includes('milk') || lowerCaseName.includes('cheese') || lowerCaseName.includes('eggs') || lowerCaseName.includes('yogurt')) return 'Dairy';
+      if (lowerCaseName.includes('chicken') || lowerCaseName.includes('ham') || lowerCaseName.includes('deli')) return 'Deli';
+      if (lowerCaseName.includes('banana') || lowerCaseName.includes('avocado') || lowerCaseName.includes('produce') || lowerCaseName.includes('fresh') || lowerCaseName.includes('apple')) return 'Fresh Produce';
+      if (lowerCaseName.includes('bakery') || lowerCaseName.includes('bread')) return 'Bakery';
+      if (lowerCaseName.includes('towel') || lowerCaseName.includes('paper') || lowerCaseName.includes('laundry') || lowerCaseName.includes('cleaning')) return 'Paper & Cleaning';
+      if (lowerCaseName.includes('dog') || lowerCaseName.includes('cat') || lowerCaseName.includes('pet')) return 'Pet Care';
+      if (lowerCaseName.includes('shampoo') || lowerCaseName.includes('beauty') || lowerCaseName.includes('toothpaste') || lowerCaseName.includes('soap')) return 'Personal Care & Beauty';
+      if (lowerCaseName.includes('cookware') || lowerCaseName.includes('kitchen') || lowerCaseName.includes('dining')) return 'Kitchen & Dining';
+      if (lowerCaseName.includes('frozen')) return 'Frozen';
+      if (lowerCaseName.includes('snack') || lowerCaseName.includes('chips')) return 'Snacks';
+      if (lowerCaseName.includes('candy')) return 'Candy';
       return 'Grocery'; // Default department
     };
 

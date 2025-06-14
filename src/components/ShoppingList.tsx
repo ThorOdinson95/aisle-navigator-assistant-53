@@ -1,4 +1,3 @@
-
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -48,7 +47,7 @@ const ShoppingList = ({ items, onCheckedChange, onAddItem, onDeleteItem }: Shopp
   }, [inputValue]);
 
   return (
-    <Card className="h-full">
+    <Card className="h-full transition-transform duration-200 hover:scale-105">
       <CardHeader className="flex flex-row items-center gap-2">
         <List className="h-5 w-5 text-primary" />
         <CardTitle>Shopping List</CardTitle>
@@ -132,4 +131,3 @@ const ShoppingList = ({ items, onCheckedChange, onAddItem, onDeleteItem }: Shopp
 };
 
 export default ShoppingList;
-

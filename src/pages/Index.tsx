@@ -4,6 +4,7 @@ import ShoppingList from "@/components/ShoppingList";
 import StoreMap from "@/components/StoreMap";
 import { Store } from "lucide-react";
 import { useState } from "react";
+import type { ProductSuggestion } from "@/data/products";
 
 // Added department to each item for mapping
 const initialShoppingItems = [
@@ -24,6 +25,8 @@ export type ShoppingItem = {
   department: string;
 };
 
+type NewItem = string | ProductSuggestion;
+
 const Index = () => {
   const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>(initialShoppingItems);
 
@@ -35,7 +38,7 @@ const Index = () => {
     );
   };
 
-  const handleAddItem = (itemName: string) => {
+  const handleAddItem = (item: NewItem) => {
     // A simple way to guess the department from the name for the demo
     const getDepartment = (name: string): string => {
       const lowerCaseName = name.toLowerCase();
@@ -53,11 +56,15 @@ const Index = () => {
 
     const newItem: ShoppingItem = {
       id: Date.now(),
-      name: itemName,
+      name: typeof item === 'string' ? item : item.name,
       checked: false,
-      department: getDepartment(itemName),
+      department: typeof item === 'string' ? getDepartment(item) : item.department,
     };
-    setShoppingItems((prevItems) => [...prevItems, newItem]);
+    setShoppingItems((prevItems) => [newItem, ...prevItems]);
+  };
+
+  const handleDeleteItem = (id: number) => {
+    setShoppingItems((prevItems) => prevItems.filter((item) => item.id !== id));
   };
 
   return (
@@ -82,13 +89,14 @@ const Index = () => {
               items={shoppingItems} 
               onCheckedChange={handleCheckedChange}
               onAddItem={handleAddItem}
+              onDeleteItem={handleDeleteItem}
             />
           </div>
           <div className="lg:col-span-3">
             <StoreMap items={shoppingItems} />
           </div>
           <div className="lg:col-span-1">
-            <Deals />
+            <Deals items={shoppingItems} />
           </div>
         </main>
       </div>
@@ -97,3 +105,4 @@ const Index = () => {
 };
 
 export default Index;
+

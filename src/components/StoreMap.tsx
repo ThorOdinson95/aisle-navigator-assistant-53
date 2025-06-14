@@ -1,4 +1,3 @@
-
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Map, ShoppingCart } from "lucide-react";
 import React, { useEffect, useState, useMemo } from 'react';
@@ -62,7 +61,8 @@ const parsePercent = (s: string): number => parseFloat(s.replace('%', ''));
 const getDistance = (dept1: { top: string; left: string }, dept2: { top: string; left: string }): number => {
     const p1 = { x: parsePercent(dept1.left), y: parsePercent(dept1.top) };
     const p2 = { x: parsePercent(dept2.left), y: parsePercent(dept2.top) };
-    return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+    // Using Manhattan distance for grid-like movement to simulate aisles
+    return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y);
 };
 
 function getPermutations<T>(array: T[]): T[][] {
@@ -174,11 +174,10 @@ const StoreMap = ({ items }: StoreMapProps) => {
               if (index === 0) return null;
               const prevPoint = shortestPath[index-1];
               return (
-                <line
+                <polyline
                   key={index}
-                  x1={prevPoint.left} y1={prevPoint.top}
-                  x2={point.left} y2={point.top}
-                  className="stroke-red-500/80"
+                  points={`${prevPoint.left},${prevPoint.top} ${point.left},${prevPoint.top} ${point.left},${point.top}`}
+                  className="fill-none stroke-red-500/80"
                   strokeWidth="2"
                   markerEnd="url(#arrowhead)"
                   strokeDasharray="5, 5"

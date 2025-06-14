@@ -3,10 +3,10 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Sparkles } from "lucide-react";
 
 const deals = [
-  { id: 1, title: "20% off all cereals", description: "This week only! Consider Cheerios." },
-  { id: 2, title: "BOGO on family-size chips", description: "Great for parties. Lays & Doritos." },
-  { id: 3, title: "Save $5 on fresh produce", description: "When you spend $25 or more." },
-  { id: 4, title: "Alternative: Organic milk", description: "Healthier choice, only $1 more." }
+  { id: 1, title: "Rollback on Great Value cereals", description: "This week only! Stock up on family favorites." },
+  { id: 2, title: "BOGO on Marketside Pizzas", description: "Buy one get one free. Perfect for a quick dinner." },
+  { id: 3, title: "Save $10 on your next $50 purchase", description: "With a Walmart+ subscription." },
+  { id: 4, title: "Alternative: Organic spinach", description: "Healthier choice, only $0.50 more than regular." }
 ];
 
 const Deals = () => {

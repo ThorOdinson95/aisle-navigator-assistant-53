@@ -1,7 +1,6 @@
-
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Map, ShoppingCart } from "lucide-react";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import type { ShoppingItem } from "@/pages/Index";
 
 interface StoreMapProps {
@@ -32,6 +31,35 @@ const departmentLocations: { [key: string]: { top: string; left: string } } = {
   'Entrance': { top: '95%', left: '50%' },
 };
 
+// Helper functions for path calculation
+const parsePercent = (s: string): number => parseFloat(s.replace('%', ''));
+
+const getDistance = (dept1: { top: string; left: string }, dept2: { top: string; left: string }): number => {
+    const p1 = { x: parsePercent(dept1.left), y: parsePercent(dept1.top) };
+    const p2 = { x: parsePercent(dept2.left), y: parsePercent(dept2.top) };
+    return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+};
+
+function getPermutations<T>(array: T[]): T[][] {
+    const result: T[][] = [];
+    function permute(arr: T[], l: number, r: number) {
+        if (l === r) {
+            result.push([...arr]);
+        } else {
+            for (let i = l; i <= r; i++) {
+                [arr[l], arr[i]] = [arr[i], arr[l]];
+                permute(arr, l + 1, r);
+                [arr[l], arr[i]] = [arr[i], arr[l]]; // backtrack
+            }
+        }
+    }
+    if (array.length > 0) {
+      permute(array, 0, array.length - 1);
+    }
+    return result;
+}
+
+
 const StoreMap = ({ items }: StoreMapProps) => {
   const [cartPosition, setCartPosition] = useState(departmentLocations['Entrance']);
 
@@ -50,6 +78,48 @@ const StoreMap = ({ items }: StoreMapProps) => {
     }
   }, [items]);
 
+  const shortestPath = useMemo(() => {
+    const nextUncheckedItem = items.find(item => !item.checked);
+    if (!nextUncheckedItem) return [];
+
+    const allUncheckedDepts = [...new Set(items.filter(i => !i.checked).map(i => i.department))];
+    const startDeptName = nextUncheckedItem.department;
+    const deptsForTsp = allUncheckedDepts.filter(d => d !== startDeptName);
+    
+    let optimalOrder: string[] = [];
+
+    if (deptsForTsp.length > 0) {
+        if (deptsForTsp.length === 1) {
+            optimalOrder = deptsForTsp;
+        } else {
+            const permutations = getPermutations(deptsForTsp);
+            let shortestPermutation: string[] = [];
+            let minDistance = Infinity;
+            const endNode = 'Checkout';
+        
+            for (const perm of permutations) {
+                let currentDistance = 0;
+                currentDistance += getDistance(departmentLocations[startDeptName], departmentLocations[perm[0]]);
+                
+                for (let i = 0; i < perm.length - 1; i++) {
+                    currentDistance += getDistance(departmentLocations[perm[i]], departmentLocations[perm[i+1]]);
+                }
+            
+                currentDistance += getDistance(departmentLocations[perm[perm.length - 1]], departmentLocations[endNode]);
+            
+                if (currentDistance < minDistance) {
+                    minDistance = currentDistance;
+                    shortestPermutation = perm;
+                }
+            }
+            optimalOrder = shortestPermutation;
+        }
+    }
+    
+    const waypointDepts = [startDeptName, ...optimalOrder, 'Checkout'];
+    return waypointDepts.map(dept => departmentLocations[dept]);
+  }, [items]);
+
   return (
     <Card className="h-full">
       <CardHeader className="flex flex-row items-center gap-2">
@@ -63,6 +133,38 @@ const StoreMap = ({ items }: StoreMapProps) => {
             alt="Walmart store map"
             className="w-full h-auto rounded-lg"
           />
+          <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
+            <defs>
+              <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" className="fill-red-500" />
+              </marker>
+            </defs>
+            {shortestPath.map((point, index) => {
+              if (index === 0) return null;
+              const prevPoint = shortestPath[index-1];
+              return (
+                <line
+                  key={index}
+                  x1={prevPoint.left} y1={prevPoint.top}
+                  x2={point.left} y2={point.top}
+                  className="stroke-red-500/80"
+                  strokeWidth="2"
+                  markerEnd="url(#arrowhead)"
+                  strokeDasharray="5, 5"
+                />
+              )
+            })}
+            {shortestPath.map((point, index) => (
+              <circle
+                key={`c-${index}`}
+                cx={point.left}
+                cy={point.top}
+                r="4"
+                className="fill-red-500 stroke-white"
+                strokeWidth="1.5"
+              />
+            ))}
+          </svg>
           <div 
             className="absolute transition-all duration-1000 ease-in-out"
             style={{ 

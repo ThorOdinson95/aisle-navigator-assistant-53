@@ -16,16 +16,11 @@ const StoreMap = ({ items }: StoreMapProps) => {
 
   useEffect(() => {
     const locatableItems = items.filter(item => departmentLocations[item.department]);
-    const nextUncheckedItem = locatableItems.find(item => !item.checked);
-    
-    if (nextUncheckedItem) {
-      const location = departmentLocations[nextUncheckedItem.department];
-      setCartPosition(location);
-    } else if (items.length > 0 && locatableItems.length > 0) {
-      // All locatable items checked, move to checkout
+    const allItemsChecked = locatableItems.length > 0 && locatableItems.every(item => item.checked);
+
+    if (allItemsChecked) {
       setCartPosition(departmentLocations['Checkout']);
     } else {
-      // List is empty or has no locatable items, stay at entrance
       setCartPosition(departmentLocations['Entrance']);
     }
   }, [items]);
@@ -50,9 +45,8 @@ const StoreMap = ({ items }: StoreMapProps) => {
               </marker>
             </defs>
             {shortestPath.map((point, index) => {
-              if (index === 0 || !point) return null;
+              if (index === 0) return null;
               const prevPoint = shortestPath[index-1];
-              if (!prevPoint) return null;
               return (
                 <React.Fragment key={index}>
                   <line
@@ -78,7 +72,7 @@ const StoreMap = ({ items }: StoreMapProps) => {
               )
             })}
             {shortestPath.map((point, index) => (
-              point && <circle
+              <circle
                 key={`c-${index}`}
                 cx={point.left}
                 cy={point.top}

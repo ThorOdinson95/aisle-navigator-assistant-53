@@ -6,48 +6,60 @@ import { getDistance, getPermutations } from '@/lib/mapUtils';
 
 export const useOptimalPath = (items: ShoppingItem[]) => {
   const shortestPath = useMemo(() => {
-    const validItems = items.filter(i => departmentLocations[i.department]);
-    const nextUncheckedItem = validItems.find(item => !item.checked);
-    if (!nextUncheckedItem) return [];
+    // Get unique department names for all unchecked items that have a location
+    const uncheckedDepts = [...new Set(
+      items
+        .filter(i => !i.checked && departmentLocations[i.department])
+        .map(i => i.department)
+    )];
 
-    const allUncheckedDepts = [...new Set(validItems.filter(i => !i.checked).map(i => i.department))];
-    const startDeptName = nextUncheckedItem.department;
-    const deptsForTsp = allUncheckedDepts.filter(d => d !== startDeptName);
-    
-    let optimalOrder: string[] = [];
-
-    if (deptsForTsp.length > 0) {
-        if (deptsForTsp.length > 8) { // Heuristic to avoid freezing browser for large lists
-            optimalOrder = deptsForTsp; // Path will be suboptimal but UI won't freeze
-        } else if (deptsForTsp.length === 1) {
-            optimalOrder = deptsForTsp;
-        } else {
-            const permutations = getPermutations(deptsForTsp);
-            let shortestPermutation: string[] = [];
-            let minDistance = Infinity;
-            const endNode = 'Checkout';
-        
-            for (const perm of permutations) {
-                let currentDistance = 0;
-                currentDistance += getDistance(departmentLocations[startDeptName], departmentLocations[perm[0]]);
-                
-                for (let i = 0; i < perm.length - 1; i++) {
-                    currentDistance += getDistance(departmentLocations[perm[i]], departmentLocations[perm[i+1]]);
-                }
-            
-                currentDistance += getDistance(departmentLocations[perm[perm.length - 1]], departmentLocations[endNode]);
-            
-                if (currentDistance < minDistance) {
-                    minDistance = currentDistance;
-                    shortestPermutation = perm;
-                }
-            }
-            optimalOrder = shortestPermutation;
-        }
+    // If no items to visit, path is from Entrance to Checkout if list has items, otherwise empty.
+    if (uncheckedDepts.length === 0) {
+      const hasLocatableItems = items.some(i => departmentLocations[i.department]);
+      if (hasLocatableItems) {
+        return [departmentLocations['Entrance'], departmentLocations['Checkout']];
+      }
+      return [];
     }
     
-    const waypointDepts = [startDeptName, ...optimalOrder, 'Checkout'];
-    return waypointDepts.map(dept => departmentLocations[dept]);
+    const startNode = 'Entrance';
+    const endNode = 'Checkout';
+    let optimalOrder: string[] = [];
+
+    // For larger lists, TSP is too slow. Return a suboptimal path to avoid freezing.
+    if (uncheckedDepts.length > 8) {
+        optimalOrder = uncheckedDepts;
+    } else if (uncheckedDepts.length === 1) {
+        optimalOrder = uncheckedDepts;
+    } else {
+        const permutations = getPermutations(uncheckedDepts);
+        let minDistance = Infinity;
+        let shortestPermutation: string[] = [];
+
+        for (const perm of permutations) {
+            let currentDistance = 0;
+            // From Entrance to the first department in permutation
+            currentDistance += getDistance(departmentLocations[startNode], departmentLocations[perm[0]]);
+            
+            // Sum of distances between departments in permutation
+            for (let i = 0; i < perm.length - 1; i++) {
+                currentDistance += getDistance(departmentLocations[perm[i]], departmentLocations[perm[i+1]]);
+            }
+        
+            // From the last department in permutation to Checkout
+            currentDistance += getDistance(departmentLocations[perm[perm.length - 1]], departmentLocations[endNode]);
+        
+            if (currentDistance < minDistance) {
+                minDistance = currentDistance;
+                shortestPermutation = perm;
+            }
+        }
+        optimalOrder = shortestPermutation;
+    }
+    
+    const waypointDepts = [startNode, ...optimalOrder, endNode];
+    // Filter out any potential undefined locations just in case
+    return waypointDepts.map(dept => departmentLocations[dept]).filter(Boolean);
   }, [items]);
 
   return shortestPath;

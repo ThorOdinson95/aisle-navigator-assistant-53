@@ -36,11 +36,11 @@ const departmentLocations: { [key: string]: { top: string; left: string } } = {
   // Top Right
   'Paper & Cleaning': { top: '15%', left: '68%' },
   'Pet Care': { top: '15%', left: '78%' },
-  'Restrooms': { top: '12%', left: '73%' },
+  'Restrooms': { top: '14%', left: '73%' },
 
   // Far Right (Groceries)
   'Deli': { top: '15%', left: '90%' },
-  'Dairy': { top: '12%', left: '90%' },
+  'Dairy': { top: '14%', left: '90%' },
   'Adult Beverages': { top: '20%', left: '90%' },
   'Snacks': { top: '30%', left: '90%' },
   'Candy': { top: '38%', left: '90%' },
@@ -52,7 +52,7 @@ const departmentLocations: { [key: string]: { top: string; left: string } } = {
 
   // Bottom Area
   'Checkout': { top: '80%', left: '65%' },
-  'Entrance': { top: '90%', left: '50%' },
+  'Entrance': { top: '88%', left: '50%' },
 };
 
 // Helper functions for path calculation
@@ -174,14 +174,27 @@ const StoreMap = ({ items }: StoreMapProps) => {
               if (index === 0) return null;
               const prevPoint = shortestPath[index-1];
               return (
-                <polyline
-                  key={index}
-                  points={`${prevPoint.left},${prevPoint.top} ${point.left},${prevPoint.top} ${point.left},${point.top}`}
-                  className="fill-none stroke-red-500/80"
-                  strokeWidth="2"
-                  markerEnd="url(#arrowhead)"
-                  strokeDasharray="5, 5"
-                />
+                <React.Fragment key={index}>
+                  <line
+                    x1={prevPoint.left}
+                    y1={prevPoint.top}
+                    x2={point.left}
+                    y2={prevPoint.top}
+                    className="stroke-red-500/80"
+                    strokeWidth="2"
+                    strokeDasharray="5, 5"
+                  />
+                  <line
+                    x1={point.left}
+                    y1={prevPoint.top}
+                    x2={point.left}
+                    y2={point.top}
+                    className="stroke-red-500/80"
+                    strokeWidth="2"
+                    markerEnd="url(#arrowhead)"
+                    strokeDasharray="5, 5"
+                  />
+                </React.Fragment>
               )
             })}
             {shortestPath.map((point, index) => (

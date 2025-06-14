@@ -1,28 +1,27 @@
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { List } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { List, Plus } from "lucide-react";
 import { useState } from "react";
+import type { ShoppingItem } from "@/pages/Index";
 
-const initialShoppingItems = [
-  { id: 1, name: "Great Value Milk, 1 Gallon", checked: true },
-  { id: 2, name: "Marketside Rotisserie Chicken", checked: false },
-  { id: 3, name: "Freshness Guaranteed Bananas, 2 lbs", checked: false },
-  { id: 4, name: "Large Cage-Free Eggs, 12 ct", checked: false },
-  { id: 5, name: "Avocados, Bag of 4", checked: true },
-  { id: 6, name: "Great Value Creamy Peanut Butter", checked: false },
-  { id: 7, name: "Member's Mark Paper Towels, 12 rolls", checked: false },
-];
+interface ShoppingListProps {
+  items: ShoppingItem[];
+  onCheckedChange: (id: number) => void;
+  onAddItem: (name: string) => void;
+}
 
-const ShoppingList = () => {
-  const [shoppingItems, setShoppingItems] = useState(initialShoppingItems);
+const ShoppingList = ({ items, onCheckedChange, onAddItem }: ShoppingListProps) => {
+  const [newItemName, setNewItemName] = useState("");
 
-  const handleCheckedChange = (id: number) => {
-    setShoppingItems(
-      shoppingItems.map((item) =>
-        item.id === id ? { ...item, checked: !item.checked } : item
-      )
-    );
+  const handleAddItem = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newItemName.trim()) {
+      onAddItem(newItemName.trim());
+      setNewItemName("");
+    }
   };
 
   return (
@@ -32,13 +31,24 @@ const ShoppingList = () => {
         <CardTitle>Shopping List</CardTitle>
       </CardHeader>
       <CardContent>
-        <ul className="space-y-4">
-          {shoppingItems.map((item) => (
+        <form onSubmit={handleAddItem} className="mb-4 flex items-center gap-2">
+          <Input 
+            placeholder="Add new item..."
+            value={newItemName}
+            onChange={(e) => setNewItemName(e.target.value)}
+            aria-label="New shopping item"
+          />
+          <Button type="submit" size="icon" aria-label="Add item">
+            <Plus className="h-4 w-4" />
+          </Button>
+        </form>
+        <ul className="h-full max-h-[450px] space-y-4 overflow-y-auto">
+          {items.map((item) => (
             <li key={item.id} className="flex items-center gap-3">
               <Checkbox
                 id={`item-${item.id}`}
                 checked={item.checked}
-                onCheckedChange={() => handleCheckedChange(item.id)}
+                onCheckedChange={() => onCheckedChange(item.id)}
               />
               <label
                 htmlFor={`item-${item.id}`}

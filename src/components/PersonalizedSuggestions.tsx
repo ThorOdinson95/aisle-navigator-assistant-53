@@ -38,7 +38,7 @@ const PersonalizedSuggestions = ({ items }: PersonalizedSuggestionsProps) => {
       )
     );
 
-    return { relevantDeals, relevantAlternatives, storeWideDeals };
+    return { relevantDeals, relevantAlternatives, storeWideDeals: storeDeals };
   }, [items]);
 
   const hasPersonalizedContent = relevantDeals.length > 0 || relevantAlternatives.length > 0;

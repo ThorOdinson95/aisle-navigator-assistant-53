@@ -25,7 +25,7 @@ const StoreWideDeals = () => {
         <CardHeader className="flex flex-row items-center gap-2">
             <BadgePercent className="h-5 w-5 text-primary" />
             <CardTitle>Store-wide Deals</CardTitle>
-        </Header>
+        </CardHeader>
         <CardContent className="space-y-2">
             <Skeleton className="h-16 w-full" />
             <Skeleton className="h-16 w-full" />

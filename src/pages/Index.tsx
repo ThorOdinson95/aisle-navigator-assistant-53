@@ -10,7 +10,6 @@ import StoreWideDeals from "@/components/StoreWideDeals";
 const initialShoppingItems = [
   { id: 1, name: "Great Value Milk, 1 Gallon", checked: true, department: "Dairy" },
   { id: 2, name: "Marketside Rotisserie Chicken", checked: false, department: "Deli" },
-  { id: 3, name: "Freshness Guaranteed Bananas, 2 lbs", checked: false, department: "Fresh Produce" },
   { id: 4, name: "Large Cage-Free Eggs, 12 ct", checked: false, department: "Dairy" },
   { id: 5, name: "Avocados, Bag of 4", checked: true, department: "Fresh Produce" },
   { id: 6, name: "Great Value Creamy Peanut Butter", checked: false, department: "Grocery" },

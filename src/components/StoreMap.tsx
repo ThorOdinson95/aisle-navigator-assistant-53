@@ -20,23 +20,53 @@ const StoreMap = ({ items }: StoreMapProps) => {
     queryFn: fetchSections,
   });
 
+  const sectionDimensions = useMemo(() => ({
+    'Entrance': { width: 2, height: 1 },
+    'Checkout': { width: 4, height: 1 },
+    'Dairy': { width: 4, height: 1 },
+    'Deli': { width: 2, height: 1 },
+    'Fresh Produce': { width: 3, height: 2 },
+    'Grocery': { width: 5, height: 3 },
+    'Paper & Cleaning': { width: 2, height: 2 },
+    'Meat': { width: 3, height: 1 },
+    'Electronics': { width: 3, height: 2 },
+    'Home': { width: 4, height: 2 },
+    'Pharmacy': { width: 2, height: 1 },
+    'Bakery': { width: 2, height: 2 },
+    'Frozen': { width: 4, height: 1 },
+    'Snacks': { width: 2, height: 2 },
+    'Personal Care & Beauty': { width: 2, height: 2 },
+  }), []);
+
+  const augmentedSections = useMemo(() => {
+    if (!sections) return [];
+    const defaultSize = { width: 2, height: 1 };
+    return sections.map(section => ({
+      ...section,
+      ...(sectionDimensions[section.name as keyof typeof sectionDimensions] || defaultSize)
+    }));
+  }, [sections, sectionDimensions]);
+
   const departmentLocations = useMemo(() => {
-    if (!sections) return {};
-    return sections.reduce((acc, section) => {
-      acc[section.name] = { grid_row: section.grid_row, grid_col: section.grid_col };
+    if (!augmentedSections.length) return {};
+    return augmentedSections.reduce((acc, section) => {
+      acc[section.name] = { 
+        grid_row: section.grid_row - 1 + section.height / 2, 
+        grid_col: section.grid_col - 1 + section.width / 2
+      };
       return acc;
     }, {} as { [key: string]: { grid_row: number; grid_col: number } });
-  }, [sections]);
+  }, [augmentedSections]);
 
   const [cartPosition, setCartPosition] = useState<{ grid_row: number; grid_col: number } | null>(null);
-  const shortestPath = useOptimalPath(items, sections || []);
+  const shortestPath = useOptimalPath(items, departmentLocations);
 
   const { gridCols, gridRows } = useMemo(() => {
-    if (!sections || sections.length === 0) return { gridCols: 0, gridRows: 0 };
-    const maxCol = Math.max(...sections.map(s => s.grid_col));
-    const maxRow = Math.max(...sections.map(s => s.grid_row));
+    if (!augmentedSections || augmentedSections.length === 0) return { gridCols: 0, gridRows: 0 };
+    const maxCol = Math.max(...augmentedSections.map(s => s.grid_col + s.width - 1));
+    const maxRow = Math.max(...augmentedSections.map(s => s.grid_row + s.height - 1));
     return { gridCols: maxCol, gridRows: maxRow };
-  }, [sections]);
+  }, [augmentedSections]);
 
   useEffect(() => {
     if (!departmentLocations || Object.keys(departmentLocations).length === 0) return;
@@ -81,7 +111,7 @@ const StoreMap = ({ items }: StoreMapProps) => {
     );
   }
 
-  const CELL_SIZE = 60;
+  const CELL_SIZE = 40;
   const svgWidth = gridCols * CELL_SIZE;
   const svgHeight = gridRows * CELL_SIZE;
 
@@ -98,7 +128,7 @@ const StoreMap = ({ items }: StoreMapProps) => {
               {/* Draw path */}
               {shortestPath.length > 1 && (
                 <polyline
-                  points={shortestPath.map(p => `${(p.grid_col - 0.5) * CELL_SIZE},${(p.grid_row - 0.5) * CELL_SIZE}`).join(' ')}
+                  points={shortestPath.map(p => `${p.grid_col * CELL_SIZE},${p.grid_row * CELL_SIZE}`).join(' ')}
                   className="fill-none stroke-blue-500/70"
                   strokeWidth="3"
                   strokeLinecap="round"
@@ -107,23 +137,23 @@ const StoreMap = ({ items }: StoreMapProps) => {
                 />
               )}
 
-              {/* Draw sections as labels */}
-              {sections.map(section => {
+              {/* Draw sections as rectangles */}
+              {augmentedSections.map(section => {
                 const isItemDept = itemDepartments.has(section.name);
                 const isSpecial = section.name === 'Entrance' || section.name === 'Checkout';
                 
-                const x = (section.grid_col - 0.5) * CELL_SIZE;
-                const y = (section.grid_row - 0.5) * CELL_SIZE;
-
-                const labelWidth = section.name.length * 5 + 20;
+                const x = (section.grid_col - 1) * CELL_SIZE;
+                const y = (section.grid_row - 1) * CELL_SIZE;
+                const w = section.width * CELL_SIZE;
+                const h = section.height * CELL_SIZE;
 
                 return (
-                  <g key={section.id} transform={`translate(${x}, ${y})`}>
+                  <g key={section.id}>
                     <rect
-                      x={-labelWidth / 2}
-                      y={-11}
-                      width={labelWidth}
-                      height={22}
+                      x={x}
+                      y={y}
+                      width={w}
+                      height={h}
                       rx="4"
                       className={cn(
                         "transition-all stroke-1",
@@ -135,6 +165,8 @@ const StoreMap = ({ items }: StoreMapProps) => {
                       )}
                     />
                     <text
+                      x={x + w / 2}
+                      y={y + h / 2}
                       textAnchor="middle"
                       dominantBaseline="middle"
                       className={cn(
@@ -154,9 +186,9 @@ const StoreMap = ({ items }: StoreMapProps) => {
             {/* Draw cart icon */}
             {cartPosition && (
               <div
-                className="absolute top-4 left-4 transition-all duration-1000 ease-in-out pointer-events-none"
+                className="absolute top-0 left-0 transition-all duration-1000 ease-in-out pointer-events-none"
                 style={{
-                  transform: `translate(${(cartPosition.grid_col - 0.5) * CELL_SIZE}px, ${(cartPosition.grid_row - 0.5) * CELL_SIZE}px)`,
+                  transform: `translate(${cartPosition.grid_col * CELL_SIZE}px, ${cartPosition.grid_row * CELL_SIZE}px)`,
                 }}
               >
                 <div className="relative flex items-center justify-center -translate-x-1/2 -translate-y-1/2">

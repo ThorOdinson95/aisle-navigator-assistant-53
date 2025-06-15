@@ -2,18 +2,16 @@
 import { useMemo } from 'react';
 import type { ShoppingItem } from '@/pages/Index';
 import { getDistance, generatePath } from '@/lib/mapUtils';
-import type { Section } from '@/types/supabase';
 
-export const useOptimalPath = (items: ShoppingItem[], sections: Section[]) => {
-  const departmentLocations = useMemo(() => {
-    if (!sections || sections.length === 0) return {};
-    return sections.reduce((acc, section) => {
-      acc[section.name] = { grid_row: section.grid_row, grid_col: section.grid_col };
-      return acc;
-    }, {} as { [key: string]: { grid_row: number; grid_col: number } });
-  }, [sections]);
-
+export const useOptimalPath = (
+  items: ShoppingItem[],
+  departmentLocations: { [key: string]: { grid_row: number; grid_col: number } }
+) => {
   const shortestPath = useMemo(() => {
+    if (!departmentLocations || Object.keys(departmentLocations).length === 0) {
+      return [];
+    }
+    
     // Get unique department names for all unchecked items that have a location
     const uncheckedDeptsSet = new Set(
       items

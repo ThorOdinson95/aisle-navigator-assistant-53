@@ -51,6 +51,27 @@ const StoreMap = ({ items }: StoreMapProps) => {
     }
   }, [items, departmentLocations]);
 
+  const pathSet = useMemo(() => new Set(shortestPath.map(p => `${p.grid_row}-${p.grid_col}`)), [shortestPath]);
+
+  const gridCells = useMemo(() => {
+    if (gridRows === 0 || gridCols === 0) return [];
+    const cells = [];
+    for (let row = 1; row <= gridRows; row++) {
+      for (let col = 1; col <= gridCols; col++) {
+        cells.push({ row, col });
+      }
+    }
+    return cells;
+  }, [gridRows, gridCols]);
+
+  const sectionsByCoords = useMemo(() => {
+    if (!sections) return new Map();
+    return sections.reduce((map, section) => {
+      map.set(`${section.grid_row}-${section.grid_col}`, section);
+      return map;
+    }, new Map<string, Section>());
+  }, [sections]);
+
   if (isLoading) {
     return (
       <Card className="h-full">
@@ -78,27 +99,6 @@ const StoreMap = ({ items }: StoreMapProps) => {
       </Card>
     );
   }
-  
-  const pathSet = new Set(shortestPath.map(p => `${p.grid_row}-${p.grid_col}`));
-
-  const gridCells = useMemo(() => {
-    if (gridRows === 0 || gridCols === 0) return [];
-    const cells = [];
-    for (let row = 1; row <= gridRows; row++) {
-      for (let col = 1; col <= gridCols; col++) {
-        cells.push({ row, col });
-      }
-    }
-    return cells;
-  }, [gridRows, gridCols]);
-
-  const sectionsByCoords = useMemo(() => {
-    if (!sections) return new Map();
-    return sections.reduce((map, section) => {
-      map.set(`${section.grid_row}-${section.grid_col}`, section);
-      return map;
-    }, new Map<string, Section>());
-  }, [sections]);
 
   return (
     <Card className="h-full">

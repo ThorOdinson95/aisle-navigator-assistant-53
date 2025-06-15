@@ -1,3 +1,4 @@
+
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Map as MapIcon, ShoppingCart } from "lucide-react";
 import React, { useEffect, useMemo, useState } from 'react';
@@ -50,7 +51,6 @@ const StoreMap = ({ items }: StoreMapProps) => {
     }
   }, [items, departmentLocations]);
 
-  const pathSet = useMemo(() => new Set(shortestPath.map(p => `${p.grid_row}-${p.grid_col}`)), [shortestPath]);
   const itemDepartments = useMemo(() => new Set(items.filter(i => !i.checked).map(i => i.department)), [items]);
 
   if (isLoading) {
@@ -81,7 +81,7 @@ const StoreMap = ({ items }: StoreMapProps) => {
     );
   }
 
-  const CELL_SIZE = 50;
+  const CELL_SIZE = 60;
   const svgWidth = gridCols * CELL_SIZE;
   const svgHeight = gridRows * CELL_SIZE;
 
@@ -95,34 +95,46 @@ const StoreMap = ({ items }: StoreMapProps) => {
         <div className="flex justify-center">
           <div className="relative rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden p-4">
             <svg width={svgWidth} height={svgHeight} className="block">
-              {/* Draw sections */}
+              {/* Draw path */}
+              {shortestPath.length > 1 && (
+                <polyline
+                  points={shortestPath.map(p => `${(p.grid_col - 0.5) * CELL_SIZE},${(p.grid_row - 0.5) * CELL_SIZE}`).join(' ')}
+                  className="fill-none stroke-blue-500/70"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeDasharray="5 5"
+                />
+              )}
+
+              {/* Draw sections as labels */}
               {sections.map(section => {
                 const isItemDept = itemDepartments.has(section.name);
                 const isSpecial = section.name === 'Entrance' || section.name === 'Checkout';
-                const coordKey = `${section.grid_row}-${section.grid_col}`;
-                const isOnPath = pathSet.has(coordKey);
+                
+                const x = (section.grid_col - 0.5) * CELL_SIZE;
+                const y = (section.grid_row - 0.5) * CELL_SIZE;
+
+                const labelWidth = section.name.length * 5 + 20;
 
                 return (
-                  <g key={section.id}>
+                  <g key={section.id} transform={`translate(${x}, ${y})`}>
                     <rect
-                      x={(section.grid_col - 1) * CELL_SIZE}
-                      y={(section.grid_row - 1) * CELL_SIZE}
-                      width={CELL_SIZE}
-                      height={CELL_SIZE}
-                      rx="3"
+                      x={-labelWidth / 2}
+                      y={-11}
+                      width={labelWidth}
+                      height={22}
+                      rx="4"
                       className={cn(
-                        "transition-all",
+                        "transition-all stroke-1",
                         isItemDept
-                          ? "fill-blue-100/50 dark:fill-blue-900/50 stroke-blue-400 dark:stroke-blue-600 stroke-2"
+                          ? "fill-blue-100 dark:fill-blue-900/50 stroke-blue-400 dark:stroke-blue-600"
                           : isSpecial
-                          ? "fill-slate-200/50 dark:fill-slate-800/50 stroke-slate-400 dark:stroke-slate-600"
-                          : "fill-transparent stroke-transparent",
-                        isOnPath && !isItemDept && !isSpecial && "fill-slate-200/30 dark:fill-slate-800/30"
+                          ? "fill-slate-200 dark:fill-slate-800/50 stroke-slate-400 dark:stroke-slate-600"
+                          : "fill-white dark:fill-slate-800/80 stroke-slate-300 dark:stroke-slate-700"
                       )}
                     />
                     <text
-                      x={(section.grid_col - 0.5) * CELL_SIZE}
-                      y={(section.grid_row - 0.5) * CELL_SIZE}
                       textAnchor="middle"
                       dominantBaseline="middle"
                       className={cn(
@@ -137,17 +149,6 @@ const StoreMap = ({ items }: StoreMapProps) => {
                   </g>
                 );
               })}
-
-              {/* Draw path */}
-              {shortestPath.length > 1 && (
-                <polyline
-                  points={shortestPath.map(p => `${(p.grid_col - 0.5) * CELL_SIZE},${(p.grid_row - 0.5) * CELL_SIZE}`).join(' ')}
-                  className="fill-none stroke-blue-500"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              )}
             </svg>
 
             {/* Draw cart icon */}

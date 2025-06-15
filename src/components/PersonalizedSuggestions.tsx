@@ -50,7 +50,7 @@ const PersonalizedSuggestions = ({ items }: PersonalizedSuggestionsProps) => {
         <CardTitle>For You</CardTitle>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[250px] w-full">
+        <ScrollArea className="h-[450px] w-full">
             {relevantDeals.length === 0 && relevantAlternatives.length === 0 ? (
                 <p className="text-sm text-muted-foreground p-4 text-center">No specific deals or alternatives for your current list.</p>
             ) : (

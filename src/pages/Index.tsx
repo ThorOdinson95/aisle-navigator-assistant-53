@@ -1,4 +1,3 @@
-import StoreDeals from "@/components/StoreDeals";
 import PersonalizedSuggestions from "@/components/PersonalizedSuggestions";
 import ShoppingList from "@/components/ShoppingList";
 import StoreMap from "@/components/StoreMap";
@@ -129,7 +128,6 @@ const Index = () => {
             <StoreMap items={shoppingItems} />
           </div>
           <div className="lg:col-span-1 flex flex-col gap-6">
-            <StoreDeals />
             <PersonalizedSuggestions items={shoppingItems} />
           </div>
         </main>

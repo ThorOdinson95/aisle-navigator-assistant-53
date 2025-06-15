@@ -16,25 +16,23 @@ const PersonalizedSuggestions = ({ items }: PersonalizedSuggestionsProps) => {
       return { relevantDeals: [], relevantAlternatives: [] };
     }
 
-    const itemKeywords = items
-      .flatMap(item => item.name.toLowerCase().split(' '))
-      .concat(items.map(item => item.department.toLowerCase()));
-    const uniqueKeywords = [...new Set(itemKeywords)];
-
-    // Filter deals
     const deals = allDeals.filter(deal => deal.type === 'deal');
     const relevantDeals = deals.filter(deal => 
-      deal.relatedKeywords.length > 0 &&
-      deal.relatedKeywords.some(keyword => 
-        uniqueKeywords.some(itemKeyword => itemKeyword.includes(keyword.toLowerCase()))
+      deal.relatedKeywords.some(keyword =>
+        items.some(item => 
+          item.name.toLowerCase().includes(keyword.toLowerCase()) || 
+          item.department.toLowerCase().includes(keyword.toLowerCase())
+        )
       )
     );
 
-    // Filter alternatives
     const alternatives = allDeals.filter(deal => deal.type === 'alternative');
     const relevantAlternatives = alternatives.filter(alt => 
       alt.relatedKeywords.some(keyword => 
-        uniqueKeywords.some(itemKeyword => itemKeyword.includes(keyword.toLowerCase()))
+        items.some(item => 
+          item.name.toLowerCase().includes(keyword.toLowerCase()) ||
+          item.department.toLowerCase().includes(keyword.toLowerCase())
+        )
       )
     );
 

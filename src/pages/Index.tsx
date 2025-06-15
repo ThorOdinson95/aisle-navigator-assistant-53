@@ -1,9 +1,10 @@
+
 import PersonalizedSuggestions from "@/components/PersonalizedSuggestions";
 import ShoppingList from "@/components/ShoppingList";
 import StoreMap from "@/components/StoreMap";
 import { Store } from "lucide-react";
 import { useState } from "react";
-import type { ProductSuggestion } from "@/data/products";
+import type { Product as ProductSuggestion } from "@/types/supabase";
 import StoreWideDeals from "@/components/StoreWideDeals";
 
 // Added department to each item for mapping

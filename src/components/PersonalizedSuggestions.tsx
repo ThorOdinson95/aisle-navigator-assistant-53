@@ -2,23 +2,31 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Sparkles, Lightbulb } from "lucide-react";
 import type { ShoppingItem } from "@/pages/Index";
-import { allDeals } from "@/data/deals";
 import { useMemo } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useQuery } from "@tanstack/react-query";
+import { fetchDeals } from "@/lib/queries";
+import type { Deal } from "@/types/supabase";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface PersonalizedSuggestionsProps {
   items: ShoppingItem[];
 }
 
 const PersonalizedSuggestions = ({ items }: PersonalizedSuggestionsProps) => {
+  const { data: allDeals, isLoading, isError } = useQuery<Deal[]>({
+    queryKey: ['deals'],
+    queryFn: fetchDeals
+  });
+
   const { relevantDeals, relevantAlternatives } = useMemo(() => {
-    if (items.length === 0) {
+    if (!allDeals || items.length === 0) {
       return { relevantDeals: [], relevantAlternatives: [] };
     }
 
-    const deals = allDeals.filter(deal => deal.type === 'deal' && !deal.isStoreWide);
+    const deals = allDeals.filter(deal => deal.type === 'deal' && !deal.is_store_wide);
     const relevantDeals = deals.filter(deal => 
-      deal.relatedKeywords.some(keyword =>
+      deal.related_keywords.some(keyword =>
         items.some(item => 
           item.name.toLowerCase().includes(keyword.toLowerCase())
         )
@@ -27,7 +35,7 @@ const PersonalizedSuggestions = ({ items }: PersonalizedSuggestionsProps) => {
 
     const alternatives = allDeals.filter(deal => deal.type === 'alternative');
     const relevantAlternatives = alternatives.filter(alt => 
-      alt.relatedKeywords.some(keyword => 
+      alt.related_keywords.some(keyword => 
         items.some(item => 
           item.name.toLowerCase().includes(keyword.toLowerCase())
         )
@@ -35,11 +43,27 @@ const PersonalizedSuggestions = ({ items }: PersonalizedSuggestionsProps) => {
     );
 
     return { relevantDeals, relevantAlternatives };
-  }, [items]);
+  }, [items, allDeals]);
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="flex flex-row items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <CardTitle>For You</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   const hasPersonalizedContent = relevantDeals.length > 0 || relevantAlternatives.length > 0;
 
-  if (!hasPersonalizedContent) {
+  if (isError || !hasPersonalizedContent) {
     return null;
   }
 

@@ -1,16 +1,40 @@
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { BadgePercent } from "lucide-react";
-import { allDeals } from "@/data/deals";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useMemo } from 'react';
+import { useQuery } from "@tanstack/react-query";
+import { fetchDeals } from "@/lib/queries";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { Deal } from "@/types/supabase";
 
 const StoreWideDeals = () => {
-  const storeWideDeals = useMemo(() => {
-    return allDeals.filter(deal => deal.type === 'deal' && deal.isStoreWide);
-  }, []);
+  const { data: allDeals, isLoading, isError } = useQuery<Deal[]>({
+    queryKey: ['deals'],
+    queryFn: fetchDeals
+  });
 
-  if (storeWideDeals.length === 0) {
+  const storeWideDeals = useMemo(() => {
+    if (!allDeals) return [];
+    return allDeals.filter(deal => deal.type === 'deal' && deal.is_store_wide);
+  }, [allDeals]);
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="flex flex-row items-center gap-2">
+            <BadgePercent className="h-5 w-5 text-primary" />
+            <CardTitle>Store-wide Deals</CardTitle>
+        </Header>
+        <CardContent className="space-y-2">
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isError || storeWideDeals.length === 0) {
     return null;
   }
 

@@ -1,3 +1,4 @@
+
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -5,23 +6,28 @@ import { Button } from "@/components/ui/button";
 import { List, Plus, X } from "lucide-react";
 import { useState, useMemo } from "react";
 import type { ShoppingItem } from "@/pages/Index";
-import { productSuggestions } from "@/data/products";
-import type { ProductSuggestion } from "@/data/products";
+import type { Product as ProductSuggestion } from "@/types/supabase";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-
-type NewItem = string | ProductSuggestion;
+import { useQuery } from "@tanstack/react-query";
+import { fetchProducts } from "@/lib/queries";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ShoppingListProps {
   items: ShoppingItem[];
   onCheckedChange: (id: number) => void;
-  onAddItem: (item: NewItem) => void;
+  onAddItem: (item: string | ProductSuggestion) => void;
   onDeleteItem: (id: number) => void;
 }
 
 const ShoppingList = ({ items, onCheckedChange, onAddItem, onDeleteItem }: ShoppingListProps) => {
   const [inputValue, setInputValue] = useState("");
   const [open, setOpen] = useState(false);
+
+  const { data: productSuggestions, isLoading } = useQuery({
+    queryKey: ['products'],
+    queryFn: fetchProducts
+  });
 
   const handleAddItemForm = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,12 +45,13 @@ const ShoppingList = ({ items, onCheckedChange, onAddItem, onDeleteItem }: Shopp
   }
 
   const filteredSuggestions = useMemo(() => {
+    if (!productSuggestions) return [];
     if (!inputValue.trim()) {
       return productSuggestions.slice(0, 5);
     }
     const search = inputValue.toLowerCase();
     return productSuggestions.filter(p => p.name.toLowerCase().includes(search)).slice(0, 10);
-  }, [inputValue]);
+  }, [inputValue, productSuggestions]);
 
   return (
     <Card className="h-full transition-transform duration-200 hover:scale-105">
@@ -79,17 +86,25 @@ const ShoppingList = ({ items, onCheckedChange, onAddItem, onDeleteItem }: Shopp
                 onValueChange={setInputValue}
               />
               <CommandList>
-                <CommandEmpty>No products found.</CommandEmpty>
+                <CommandEmpty>{isLoading ? "Loading..." : "No products found."}</CommandEmpty>
                 <CommandGroup heading="Suggestions">
-                  {filteredSuggestions.map((suggestion) => (
-                    <CommandItem
-                      key={suggestion.name}
-                      onSelect={() => handleSelectSuggestion(suggestion)}
-                      value={suggestion.name}
-                    >
-                      {suggestion.name}
-                    </CommandItem>
-                  ))}
+                  {isLoading ? (
+                    <div className="p-2 space-y-2">
+                      <Skeleton className="h-8 w-full" />
+                      <Skeleton className="h-8 w-full" />
+                      <Skeleton className="h-8 w-full" />
+                    </div>
+                  ) : (
+                    filteredSuggestions.map((suggestion) => (
+                      <CommandItem
+                        key={suggestion.id}
+                        onSelect={() => handleSelectSuggestion(suggestion)}
+                        value={suggestion.name}
+                      >
+                        {suggestion.name}
+                      </CommandItem>
+                    ))
+                  )}
                 </CommandGroup>
               </CommandList>
             </Command>

@@ -20,8 +20,7 @@ const PersonalizedSuggestions = ({ items }: PersonalizedSuggestionsProps) => {
     const relevantDeals = deals.filter(deal => 
       deal.relatedKeywords.some(keyword =>
         items.some(item => 
-          item.name.toLowerCase().includes(keyword.toLowerCase()) || 
-          item.department.toLowerCase().includes(keyword.toLowerCase())
+          item.name.toLowerCase().includes(keyword.toLowerCase())
         )
       )
     );
@@ -30,8 +29,7 @@ const PersonalizedSuggestions = ({ items }: PersonalizedSuggestionsProps) => {
     const relevantAlternatives = alternatives.filter(alt => 
       alt.relatedKeywords.some(keyword => 
         items.some(item => 
-          item.name.toLowerCase().includes(keyword.toLowerCase()) ||
-          item.department.toLowerCase().includes(keyword.toLowerCase())
+          item.name.toLowerCase().includes(keyword.toLowerCase())
         )
       )
     );

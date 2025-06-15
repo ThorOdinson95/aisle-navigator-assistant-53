@@ -1,6 +1,6 @@
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Map, ShoppingCart } from "lucide-react";
+import { Map as MapIcon, ShoppingCart } from "lucide-react";
 import React, { useEffect, useMemo, useState } from 'react';
 import type { ShoppingItem } from "@/pages/Index";
 import { useOptimalPath } from '@/hooks/useOptimalPath';
@@ -55,7 +55,7 @@ const StoreMap = ({ items }: StoreMapProps) => {
     return (
       <Card className="h-full">
         <CardHeader className="flex flex-row items-center gap-2">
-          <Map className="h-5 w-5 text-primary" />
+          <MapIcon className="h-5 w-5 text-primary" />
           <CardTitle>Store Map</CardTitle>
         </CardHeader>
         <CardContent>
@@ -69,7 +69,7 @@ const StoreMap = ({ items }: StoreMapProps) => {
     return (
       <Card className="h-full">
         <CardHeader className="flex flex-row items-center gap-2">
-          <Map className="h-5 w-5 text-primary" />
+          <MapIcon className="h-5 w-5 text-primary" />
           <CardTitle>Store Map</CardTitle>
         </CardHeader>
         <CardContent>
@@ -103,7 +103,7 @@ const StoreMap = ({ items }: StoreMapProps) => {
   return (
     <Card className="h-full">
       <CardHeader className="flex flex-row items-center gap-2">
-        <Map className="h-5 w-5 text-primary" />
+        <MapIcon className="h-5 w-5 text-primary" />
         <CardTitle>Store Map</CardTitle>
       </CardHeader>
       <CardContent>

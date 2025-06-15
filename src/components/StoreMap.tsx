@@ -1,20 +1,46 @@
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Map, ShoppingCart } from "lucide-react";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import type { ShoppingItem } from "@/pages/Index";
-import { departmentLocations } from '@/data/departmentLocations';
 import { useOptimalPath } from '@/hooks/useOptimalPath';
+import { useQuery } from "@tanstack/react-query";
+import { fetchSections } from "@/lib/queries";
+import type { Section } from "@/types/supabase";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 interface StoreMapProps {
   items: ShoppingItem[];
 }
 
 const StoreMap = ({ items }: StoreMapProps) => {
-  const [cartPosition, setCartPosition] = useState(departmentLocations['Entrance']);
-  const shortestPath = useOptimalPath(items);
+  const { data: sections, isLoading, isError } = useQuery<Section[]>({
+    queryKey: ['sections'],
+    queryFn: fetchSections,
+  });
+
+  const departmentLocations = useMemo(() => {
+    if (!sections) return {};
+    return sections.reduce((acc, section) => {
+      acc[section.name] = { grid_row: section.grid_row, grid_col: section.grid_col };
+      return acc;
+    }, {} as { [key: string]: { grid_row: number; grid_col: number } });
+  }, [sections]);
+
+  const [cartPosition, setCartPosition] = useState<{ grid_row: number; grid_col: number } | null>(null);
+  const shortestPath = useOptimalPath(items, sections || []);
+
+  const { gridCols, gridRows } = useMemo(() => {
+    if (!sections || sections.length === 0) return { gridCols: 0, gridRows: 0 };
+    const maxCol = Math.max(...sections.map(s => s.grid_col));
+    const maxRow = Math.max(...sections.map(s => s.grid_row));
+    return { gridCols: maxCol, gridRows: maxRow };
+  }, [sections]);
 
   useEffect(() => {
+    if (!departmentLocations || Object.keys(departmentLocations).length === 0) return;
+
     const locatableItems = items.filter(item => departmentLocations[item.department]);
     const allItemsChecked = locatableItems.length > 0 && locatableItems.every(item => item.checked);
 
@@ -23,7 +49,37 @@ const StoreMap = ({ items }: StoreMapProps) => {
     } else {
       setCartPosition(departmentLocations['Entrance']);
     }
-  }, [items]);
+  }, [items, departmentLocations]);
+
+  if (isLoading) {
+    return (
+      <Card className="h-full">
+        <CardHeader className="flex flex-row items-center gap-2">
+          <Map className="h-5 w-5 text-primary" />
+          <CardTitle>Store Map</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="w-full h-[400px] rounded-lg" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isError || !sections) {
+    return (
+      <Card className="h-full">
+        <CardHeader className="flex flex-row items-center gap-2">
+          <Map className="h-5 w-5 text-primary" />
+          <CardTitle>Store Map</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Could not load store map.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  const pathSet = new Set(shortestPath.map(p => `${p.grid_row}-${p.grid_col}`));
 
   return (
     <Card className="h-full">
@@ -32,67 +88,41 @@ const StoreMap = ({ items }: StoreMapProps) => {
         <CardTitle>Store Map</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="relative w-full">
-          <img 
-            src="/lovable-uploads/55b86e5f-e2b8-4538-bea6-86a63f6504e9.png" 
-            alt="Walmart store map"
-            className="w-full h-auto rounded-lg"
-          />
-          <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
-            <defs>
-              <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 0 L 10 5 L 0 10 z" className="fill-red-500" />
-              </marker>
-            </defs>
-            {shortestPath.map((point, index) => {
-              if (index === 0) return null;
-              const prevPoint = shortestPath[index-1];
-              return (
-                <React.Fragment key={index}>
-                  <line
-                    x1={prevPoint.left}
-                    y1={prevPoint.top}
-                    x2={point.left}
-                    y2={prevPoint.top}
-                    className="stroke-red-500/80"
-                    strokeWidth="2"
-                    strokeDasharray="5, 5"
-                  />
-                  <line
-                    x1={point.left}
-                    y1={prevPoint.top}
-                    x2={point.left}
-                    y2={point.top}
-                    className="stroke-red-500/80"
-                    strokeWidth="2"
-                    markerEnd="url(#arrowhead)"
-                    strokeDasharray="5, 5"
-                  />
-                </React.Fragment>
-              )
-            })}
-            {shortestPath.map((point, index) => (
-              <circle
-                key={`c-${index}`}
-                cx={point.left}
-                cy={point.top}
-                r="4"
-                className="fill-red-500 stroke-white"
-                strokeWidth="1.5"
-              />
-            ))}
-          </svg>
-          <div 
-            className="absolute transition-all duration-1000 ease-in-out"
-            style={{ 
-              top: cartPosition.top, 
-              left: cartPosition.left,
-              transform: 'translate(-50%, -50%)'
-            }}
-          >
-            <ShoppingCart className="h-8 w-8 text-red-600 fill-red-400" />
-            <div className="absolute top-0 left-0 h-8 w-8 rounded-full bg-red-500/50 animate-ping"></div>
-          </div>
+        <div 
+          className="grid gap-1 bg-muted/20 p-2 rounded-lg relative"
+          style={{
+            gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`,
+            gridTemplateRows: `repeat(${gridRows}, minmax(0, 1fr))`,
+            aspectRatio: `${gridCols} / ${gridRows}`,
+          }}
+        >
+          {sections.map((section) => {
+            const isOnPath = pathSet.has(`${section.grid_row}-${section.grid_col}`);
+            const isCartPosition = cartPosition && section.grid_row === cartPosition.grid_row && section.grid_col === cartPosition.grid_col;
+            return (
+              <div
+                key={section.id}
+                className={cn(
+                  "flex items-center justify-center rounded-sm border bg-background p-1 text-center text-xs font-medium text-muted-foreground transition-colors",
+                  isOnPath && "bg-primary/20 border-primary",
+                  section.name === "Entrance" && "bg-green-500/20 text-green-700",
+                  section.name === "Checkout" && "bg-red-500/20 text-red-700",
+                )}
+                style={{
+                  gridColumn: section.grid_col,
+                  gridRow: section.grid_row,
+                }}
+              >
+                {section.name}
+                 {isCartPosition && (
+                    <div className="absolute transition-all duration-1000 ease-in-out flex items-center justify-center">
+                        <ShoppingCart className="h-6 w-6 text-blue-600 fill-blue-400 z-10" />
+                        <div className="absolute h-6 w-6 rounded-full bg-blue-500/50 animate-ping"></div>
+                    </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </CardContent>
     </Card>

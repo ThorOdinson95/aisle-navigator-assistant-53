@@ -1,9 +1,7 @@
 
-export const parsePercent = (s: string): number => parseFloat(s.replace('%', ''));
+type GridPoint = { grid_row: number; grid_col: number };
 
-export const getDistance = (dept1: { top: string; left: string }, dept2: { top: string; left: string }): number => {
-    const p1 = { x: parsePercent(dept1.left), y: parsePercent(dept1.top) };
-    const p2 = { x: parsePercent(dept2.left), y: parsePercent(dept2.top) };
+export const getDistance = (dept1: GridPoint, dept2: GridPoint): number => {
     // Using Manhattan distance for grid-like movement to simulate aisles
-    return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y);
+    return Math.abs(dept1.grid_col - dept2.grid_col) + Math.abs(dept1.grid_row - dept2.grid_row);
 };

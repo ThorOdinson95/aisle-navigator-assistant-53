@@ -60,6 +60,30 @@ export type Database = {
         }
         Relationships: []
       }
+      sections: {
+        Row: {
+          created_at: string | null
+          grid_col: number
+          grid_row: number
+          id: number
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          grid_col: number
+          grid_row: number
+          id?: number
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          grid_col?: number
+          grid_row?: number
+          id?: number
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

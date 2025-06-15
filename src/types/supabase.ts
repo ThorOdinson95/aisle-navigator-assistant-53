@@ -6,6 +6,14 @@ export type Product = {
   created_at: string;
 }
 
+export type Section = {
+  id: number;
+  name: string;
+  grid_row: number;
+  grid_col: number;
+  created_at: string;
+}
+
 export type Deal = {
   id: number;
   title: string;

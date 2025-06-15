@@ -1,3 +1,4 @@
+
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Map, ShoppingCart } from "lucide-react";
 import React, { useEffect, useMemo, useState } from 'react';
@@ -80,6 +81,25 @@ const StoreMap = ({ items }: StoreMapProps) => {
   
   const pathSet = new Set(shortestPath.map(p => `${p.grid_row}-${p.grid_col}`));
 
+  const gridCells = useMemo(() => {
+    if (gridRows === 0 || gridCols === 0) return [];
+    const cells = [];
+    for (let row = 1; row <= gridRows; row++) {
+      for (let col = 1; col <= gridCols; col++) {
+        cells.push({ row, col });
+      }
+    }
+    return cells;
+  }, [gridRows, gridCols]);
+
+  const sectionsByCoords = useMemo(() => {
+    if (!sections) return new Map();
+    return sections.reduce((map, section) => {
+      map.set(`${section.grid_row}-${section.grid_col}`, section);
+      return map;
+    }, new Map<string, Section>());
+  }, [sections]);
+
   return (
     <Card className="h-full">
       <CardHeader className="flex flex-row items-center gap-2">
@@ -89,37 +109,58 @@ const StoreMap = ({ items }: StoreMapProps) => {
       <CardContent>
         <div className="flex justify-center">
           <div 
-            className="grid gap-2 bg-slate-100 dark:bg-slate-800/50 p-4 rounded-xl relative w-full max-w-2xl border"
+            className="grid gap-1 bg-slate-200/50 dark:bg-slate-800/20 p-2 rounded-lg relative w-full max-w-lg border border-slate-200 dark:border-slate-800"
             style={{
               gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`,
               gridTemplateRows: `repeat(${gridRows}, minmax(0, 1fr))`,
               aspectRatio: `${gridCols} / ${gridRows}`,
             }}
           >
-            {sections.map((section) => {
-              const isOnPath = pathSet.has(`${section.grid_row}-${section.grid_col}`);
-              const isCartPosition = cartPosition && section.grid_row === cartPosition.grid_row && section.grid_col === cartPosition.grid_col;
+            {gridCells.map(({ row, col }) => {
+              const coordKey = `${row}-${col}`;
+              const section = sectionsByCoords.get(coordKey);
+              const isOnPath = pathSet.has(coordKey);
+              const isCartPosition = cartPosition && row === cartPosition.grid_row && col === cartPosition.grid_col;
+
+              if (section) {
+                return (
+                  <div
+                    key={coordKey}
+                    className={cn(
+                      "flex aspect-square items-center justify-center rounded-md border bg-white dark:bg-slate-950 p-1 text-center text-[9px] font-medium text-slate-600 shadow-sm transition-all hover:shadow-lg hover:-translate-y-0.5 dark:text-slate-400 sm:text-[10px]",
+                      isOnPath && "bg-blue-50 dark:bg-blue-900/30 border-blue-400 dark:border-blue-600 ring-2 ring-blue-500/50",
+                      section.name === "Entrance" && "bg-green-100 text-green-800 border-green-400 dark:bg-green-900/50 dark:text-green-300",
+                      section.name === "Checkout" && "bg-red-100 text-red-800 border-red-400 dark:bg-red-900/50 dark:text-red-300",
+                    )}
+                    style={{ gridColumn: col, gridRow: row }}
+                  >
+                    {section.name}
+                    {isCartPosition && (
+                      <div className="absolute transition-all duration-1000 ease-in-out flex items-center justify-center">
+                          <ShoppingCart className="h-6 w-6 text-blue-600 fill-blue-400 z-10" />
+                          <div className="absolute h-6 w-6 rounded-full bg-blue-500/50 animate-ping"></div>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              // Aisle cell
               return (
                 <div
-                  key={section.id}
-                  className={cn(
-                    "flex aspect-square items-center justify-center rounded-md border bg-white dark:bg-slate-950 p-1 text-center text-[10px] font-medium text-slate-600 shadow-sm transition-all hover:shadow-lg hover:-translate-y-1 dark:text-slate-400 sm:text-xs",
-                    isOnPath && "bg-blue-50 dark:bg-blue-900/30 border-blue-400 dark:border-blue-600 ring-2 ring-blue-500/50",
-                    section.name === "Entrance" && "bg-green-100 text-green-800 border-green-400 dark:bg-green-900/50 dark:text-green-300",
-                    section.name === "Checkout" && "bg-red-100 text-red-800 border-red-400 dark:bg-red-900/50 dark:text-red-300",
-                  )}
-                  style={{
-                    gridColumn: section.grid_col,
-                    gridRow: section.grid_row,
-                  }}
+                  key={coordKey}
+                  className="flex aspect-square items-center justify-center"
+                  style={{ gridColumn: col, gridRow: row }}
                 >
-                  {section.name}
+                  {isOnPath && (
+                    <div className="h-2/5 w-2/5 rounded-full bg-blue-300 dark:bg-blue-700" />
+                  )}
                   {isCartPosition && (
                       <div className="absolute transition-all duration-1000 ease-in-out flex items-center justify-center">
                           <ShoppingCart className="h-6 w-6 text-blue-600 fill-blue-400 z-10" />
                           <div className="absolute h-6 w-6 rounded-full bg-blue-500/50 animate-ping"></div>
                       </div>
-                  )}
+                   )}
                 </div>
               );
             })}

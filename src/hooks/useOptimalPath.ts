@@ -1,7 +1,7 @@
 
 import { useMemo } from 'react';
 import type { ShoppingItem } from '@/pages/Index';
-import { getDistance } from '@/lib/mapUtils';
+import { getDistance, generatePath } from '@/lib/mapUtils';
 import type { Section } from '@/types/supabase';
 
 export const useOptimalPath = (items: ShoppingItem[], sections: Section[]) => {
@@ -21,46 +21,50 @@ export const useOptimalPath = (items: ShoppingItem[], sections: Section[]) => {
         .map(i => i.department)
     );
 
+    let pathOrder: string[] = [];
+    
     // If no items to visit, path is from Entrance to Checkout if list has items, otherwise empty.
     if (uncheckedDeptsSet.size === 0) {
       const hasLocatableItems = items.some(i => departmentLocations[i.department]);
       if (hasLocatableItems && departmentLocations['Entrance'] && departmentLocations['Checkout']) {
-        return [departmentLocations['Entrance'], departmentLocations['Checkout']];
+        pathOrder = ['Entrance', 'Checkout'];
       }
-      return [];
-    }
+    } else {
+      pathOrder = ['Entrance'];
+      let remainingDepts = Array.from(uncheckedDeptsSet);
+      let currentLocation = 'Entrance';
 
-    const pathOrder: string[] = ['Entrance'];
-    let remainingDepts = Array.from(uncheckedDeptsSet);
-    let currentLocation = 'Entrance';
+      while (remainingDepts.length > 0) {
+        let nearestDept = '';
+        let minDistance = Infinity;
 
-    while (remainingDepts.length > 0) {
-      let nearestDept = '';
-      let minDistance = Infinity;
+        for (const dept of remainingDepts) {
+          if (!departmentLocations[currentLocation] || !departmentLocations[dept]) continue;
+          const distance = getDistance(departmentLocations[currentLocation], departmentLocations[dept]);
+          if (distance < minDistance) {
+            minDistance = distance;
+            nearestDept = dept;
+          }
+        }
 
-      for (const dept of remainingDepts) {
-        if (!departmentLocations[currentLocation] || !departmentLocations[dept]) continue;
-        const distance = getDistance(departmentLocations[currentLocation], departmentLocations[dept]);
-        if (distance < minDistance) {
-          minDistance = distance;
-          nearestDept = dept;
+        if (nearestDept) {
+          pathOrder.push(nearestDept);
+          currentLocation = nearestDept;
+          remainingDepts = remainingDepts.filter(d => d !== nearestDept);
+        } else {
+          // Safeguard, should not be reached if remainingDepts is not empty.
+          break;
         }
       }
-
-      if (nearestDept) {
-        pathOrder.push(nearestDept);
-        currentLocation = nearestDept;
-        remainingDepts = remainingDepts.filter(d => d !== nearestDept);
-      } else {
-        // Safeguard, should not be reached if remainingDepts is not empty.
-        break;
-      }
+      pathOrder.push('Checkout');
     }
-
-    pathOrder.push('Checkout');
     
-    // Map department names to location objects and filter out any that might be undefined
-    return pathOrder.map(dept => departmentLocations[dept]).filter(Boolean);
+    // Map department names to location objects
+    const departmentPoints = pathOrder.map(dept => departmentLocations[dept]).filter(Boolean);
+
+    // Generate full path with aisles
+    return generatePath(departmentPoints);
+
   }, [items, departmentLocations]);
 
   return shortestPath;

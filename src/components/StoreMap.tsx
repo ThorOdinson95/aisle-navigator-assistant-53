@@ -1,4 +1,3 @@
-
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Map as MapIcon, ShoppingCart } from "lucide-react";
 import React, { useEffect, useMemo, useState } from 'react';
@@ -96,13 +95,6 @@ const StoreMap = ({ items }: StoreMapProps) => {
         <div className="flex justify-center">
           <div className="relative rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden p-4">
             <svg width={svgWidth} height={svgHeight} className="block">
-              <defs>
-                <pattern id="floor-grid" width={CELL_SIZE} height={CELL_SIZE} patternUnits="userSpaceOnUse">
-                  <path d={`M ${CELL_SIZE} 0 L 0 0 0 ${CELL_SIZE}`} fill="none" stroke="rgba(200, 200, 200, 0.2)" strokeWidth="1"/>
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#floor-grid)" />
-
               {/* Draw sections */}
               {sections.map(section => {
                 const isItemDept = itemDepartments.has(section.name);
@@ -124,8 +116,8 @@ const StoreMap = ({ items }: StoreMapProps) => {
                           ? "fill-blue-100/50 dark:fill-blue-900/50 stroke-blue-400 dark:stroke-blue-600 stroke-2"
                           : isSpecial
                           ? "fill-slate-200/50 dark:fill-slate-800/50 stroke-slate-400 dark:stroke-slate-600"
-                          : "fill-transparent stroke-slate-300/50 dark:stroke-slate-700/50",
-                        isOnPath && !isItemDept && "fill-slate-200/30 dark:fill-slate-800/30"
+                          : "fill-transparent stroke-transparent",
+                        isOnPath && !isItemDept && !isSpecial && "fill-slate-200/30 dark:fill-slate-800/30"
                       )}
                     />
                     <text
@@ -154,7 +146,6 @@ const StoreMap = ({ items }: StoreMapProps) => {
                   strokeWidth="3"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeDasharray="4 4"
                 />
               )}
             </svg>

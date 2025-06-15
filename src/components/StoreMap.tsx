@@ -52,6 +52,7 @@ const StoreMap = ({ items }: StoreMapProps) => {
   }, [items, departmentLocations]);
 
   const pathSet = useMemo(() => new Set(shortestPath.map(p => `${p.grid_row}-${p.grid_col}`)), [shortestPath]);
+  const itemDepartments = useMemo(() => new Set(items.filter(i => !i.checked).map(i => i.department)), [items]);
 
   if (isLoading) {
     return (
@@ -93,12 +94,22 @@ const StoreMap = ({ items }: StoreMapProps) => {
       </CardHeader>
       <CardContent>
         <div className="flex justify-center">
-          <div className="relative rounded-lg bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 overflow-hidden">
+          <div className="relative rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden p-4">
             <svg width={svgWidth} height={svgHeight} className="block">
+              <defs>
+                <pattern id="floor-grid" width={CELL_SIZE} height={CELL_SIZE} patternUnits="userSpaceOnUse">
+                  <path d={`M ${CELL_SIZE} 0 L 0 0 0 ${CELL_SIZE}`} fill="none" stroke="rgba(200, 200, 200, 0.2)" strokeWidth="1"/>
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#floor-grid)" />
+
               {/* Draw sections */}
               {sections.map(section => {
+                const isItemDept = itemDepartments.has(section.name);
+                const isSpecial = section.name === 'Entrance' || section.name === 'Checkout';
                 const coordKey = `${section.grid_row}-${section.grid_col}`;
                 const isOnPath = pathSet.has(coordKey);
+
                 return (
                   <g key={section.id}>
                     <rect
@@ -108,22 +119,26 @@ const StoreMap = ({ items }: StoreMapProps) => {
                       height={CELL_SIZE}
                       rx="3"
                       className={cn(
-                        "stroke-slate-300 dark:stroke-slate-700",
-                        section.name === "Entrance"
-                          ? "fill-green-100 dark:fill-green-900/50"
-                          : section.name === "Checkout"
-                          ? "fill-red-100 dark:fill-red-900/50"
-                          : "fill-white dark:fill-slate-800",
-                        isOnPath && "stroke-blue-500"
+                        "transition-all",
+                        isItemDept
+                          ? "fill-blue-100/50 dark:fill-blue-900/50 stroke-blue-400 dark:stroke-blue-600 stroke-2"
+                          : isSpecial
+                          ? "fill-slate-200/50 dark:fill-slate-800/50 stroke-slate-400 dark:stroke-slate-600"
+                          : "fill-transparent stroke-slate-300/50 dark:stroke-slate-700/50",
+                        isOnPath && !isItemDept && "fill-slate-200/30 dark:fill-slate-800/30"
                       )}
-                      strokeWidth={isOnPath ? 2 : 1}
                     />
                     <text
                       x={(section.grid_col - 0.5) * CELL_SIZE}
                       y={(section.grid_row - 0.5) * CELL_SIZE}
                       textAnchor="middle"
                       dominantBaseline="middle"
-                      className="text-[10px] font-medium fill-slate-700 dark:fill-slate-300 pointer-events-none"
+                      className={cn(
+                        "text-[10px] font-medium pointer-events-none",
+                        isItemDept
+                          ? "fill-blue-800 dark:fill-blue-200 font-bold"
+                          : "fill-slate-600 dark:fill-slate-400"
+                      )}
                     >
                       {section.name}
                     </text>
@@ -139,6 +154,7 @@ const StoreMap = ({ items }: StoreMapProps) => {
                   strokeWidth="3"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                  strokeDasharray="4 4"
                 />
               )}
             </svg>
@@ -146,7 +162,7 @@ const StoreMap = ({ items }: StoreMapProps) => {
             {/* Draw cart icon */}
             {cartPosition && (
               <div
-                className="absolute top-0 left-0 transition-all duration-1000 ease-in-out pointer-events-none"
+                className="absolute top-4 left-4 transition-all duration-1000 ease-in-out pointer-events-none"
                 style={{
                   transform: `translate(${(cartPosition.grid_col - 0.5) * CELL_SIZE}px, ${(cartPosition.grid_row - 0.5) * CELL_SIZE}px)`,
                 }}

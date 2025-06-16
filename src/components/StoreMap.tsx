@@ -50,10 +50,14 @@ const StoreMap = ({ items }: StoreMapProps) => {
   const departmentLocations = useMemo(() => {
     if (!augmentedSections || augmentedSections.length === 0) return {};
     return augmentedSections.reduce((acc, section) => {
-      if (section && typeof section.grid_row === 'number' && typeof section.grid_col === 'number') {
+      if (section && 
+          typeof section.grid_row === 'number' && 
+          typeof section.grid_col === 'number' &&
+          typeof section.width === 'number' &&
+          typeof section.height === 'number') {
         acc[section.name] = { 
-          grid_row: section.grid_row - 1 + (section.height || 1) / 2, 
-          grid_col: section.grid_col - 1 + (section.width || 1) / 2
+          grid_row: section.grid_row - 1 + section.height / 2, 
+          grid_col: section.grid_col - 1 + section.width / 2
         };
       }
       return acc;
@@ -65,8 +69,19 @@ const StoreMap = ({ items }: StoreMapProps) => {
 
   const { gridCols, gridRows } = useMemo(() => {
     if (!augmentedSections || augmentedSections.length === 0) return { gridCols: 12, gridRows: 8 };
-    const maxCol = Math.max(...augmentedSections.map(s => (s.grid_col || 1) + (s.width || 1) - 1), 12);
-    const maxRow = Math.max(...augmentedSections.map(s => (s.grid_row || 1) + (s.height || 1) - 1), 8);
+    
+    let maxCol = 12;
+    let maxRow = 8;
+    
+    augmentedSections.forEach(s => {
+      if (typeof s.grid_col === 'number' && typeof s.width === 'number') {
+        maxCol = Math.max(maxCol, s.grid_col + s.width - 1);
+      }
+      if (typeof s.grid_row === 'number' && typeof s.height === 'number') {
+        maxRow = Math.max(maxRow, s.grid_row + s.height - 1);
+      }
+    });
+    
     return { gridCols: maxCol, gridRows: maxRow };
   }, [augmentedSections]);
 
@@ -130,7 +145,10 @@ const StoreMap = ({ items }: StoreMapProps) => {
               {/* Draw path */}
               {shortestPath && shortestPath.length > 1 && (
                 <polyline
-                  points={shortestPath.map(p => `${p.grid_col * CELL_SIZE},${p.grid_row * CELL_SIZE}`).join(' ')}
+                  points={shortestPath
+                    .filter(p => p && typeof p.grid_col === 'number' && typeof p.grid_row === 'number')
+                    .map(p => `${p.grid_col * CELL_SIZE},${p.grid_row * CELL_SIZE}`)
+                    .join(' ')}
                   className="fill-none stroke-blue-500/70"
                   strokeWidth="3"
                   strokeLinecap="round"
@@ -141,15 +159,21 @@ const StoreMap = ({ items }: StoreMapProps) => {
 
               {/* Draw sections as rectangles */}
               {augmentedSections.map(section => {
-                if (!section || typeof section.grid_row !== 'number' || typeof section.grid_col !== 'number') return null;
+                if (!section || 
+                    typeof section.grid_row !== 'number' || 
+                    typeof section.grid_col !== 'number' ||
+                    typeof section.width !== 'number' ||
+                    typeof section.height !== 'number') {
+                  return null;
+                }
                 
                 const isItemDept = itemDepartments.has(section.name);
                 const isSpecial = section.name === 'Entrance' || section.name === 'Checkout';
                 
                 const x = (section.grid_col - 1) * CELL_SIZE;
                 const y = (section.grid_row - 1) * CELL_SIZE;
-                const w = (section.width || 1) * CELL_SIZE;
-                const h = (section.height || 1) * CELL_SIZE;
+                const w = section.width * CELL_SIZE;
+                const h = section.height * CELL_SIZE;
 
                 return (
                   <g key={section.id}>
@@ -204,8 +228,8 @@ const StoreMap = ({ items }: StoreMapProps) => {
           </div>
         </div>
       </CardContent>
-    </Card>
-  );
+    );
+  }
 };
 
 export default StoreMap;

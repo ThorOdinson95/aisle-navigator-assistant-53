@@ -8,6 +8,7 @@ export const useOptimalPath = (
   departmentLocations: { [key: string]: { grid_row: number; grid_col: number } }
 ) => {
   const shortestPath = useMemo(() => {
+    // Early return if no department locations
     if (!departmentLocations || Object.keys(departmentLocations).length === 0) {
       return [];
     }
@@ -21,24 +22,32 @@ export const useOptimalPath = (
 
     let pathOrder: string[] = [];
     
-    // If no items to visit, path is from Entrance to Checkout if list has items, otherwise empty.
+    // If no items to visit, path is from Entrance to Checkout if both exist
     if (uncheckedDeptsSet.size === 0) {
       const hasLocatableItems = items.some(i => departmentLocations[i.department]);
       if (hasLocatableItems && departmentLocations['Entrance'] && departmentLocations['Checkout']) {
         pathOrder = ['Entrance', 'Checkout'];
       }
     } else {
-      pathOrder = ['Entrance'];
+      // Only add Entrance if it exists
+      if (departmentLocations['Entrance']) {
+        pathOrder = ['Entrance'];
+      }
+      
       let remainingDepts = Array.from(uncheckedDeptsSet);
-      let currentLocation = 'Entrance';
+      let currentLocation = pathOrder.length > 0 ? 'Entrance' : remainingDepts[0];
 
       while (remainingDepts.length > 0) {
         let nearestDept = '';
         let minDistance = Infinity;
 
         for (const dept of remainingDepts) {
-          if (!departmentLocations[currentLocation] || !departmentLocations[dept]) continue;
-          const distance = getDistance(departmentLocations[currentLocation], departmentLocations[dept]);
+          const currentLoc = departmentLocations[currentLocation];
+          const deptLoc = departmentLocations[dept];
+          
+          if (!currentLoc || !deptLoc) continue;
+          
+          const distance = getDistance(currentLoc, deptLoc);
           if (distance < minDistance) {
             minDistance = distance;
             nearestDept = dept;
@@ -53,13 +62,25 @@ export const useOptimalPath = (
           break;
         }
       }
-      pathOrder.push('Checkout');
+      
+      // Only add Checkout if it exists
+      if (departmentLocations['Checkout']) {
+        pathOrder.push('Checkout');
+      }
     }
     
     // Map department names to location objects, filtering out any undefined locations
     const departmentPoints = pathOrder
       .map(dept => departmentLocations[dept])
-      .filter(location => location && typeof location.grid_row === 'number' && typeof location.grid_col === 'number');
+      .filter(location => location && 
+        typeof location.grid_row === 'number' && 
+        typeof location.grid_col === 'number'
+      );
+
+    // Only generate path if we have valid points
+    if (departmentPoints.length < 2) {
+      return departmentPoints;
+    }
 
     // Generate full path with aisles
     return generatePath(departmentPoints);

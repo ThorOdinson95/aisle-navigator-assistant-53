@@ -1,187 +1,106 @@
 
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Map as MapIcon, ShoppingCart } from "lucide-react";
-import React, { useEffect, useMemo, useState } from 'react';
-import type { ShoppingItem } from "@/pages/Index";
-import { useOptimalPath } from '@/hooks/useOptimalPath';
-import { useQuery } from "@tanstack/react-query";
-import { fetchSections } from "@/lib/queries";
-import type { Section } from "@/types/supabase";
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import React, { useState } from 'react';
+import { storeSections, StoreSection } from '../mapData'; // Import your section data
 
-interface StoreMapProps {
-  items: ShoppingItem[];
-}
+export const StoreMap: React.FC = () => {
+  const [hoveredSection, setHoveredSection] = useState<string | null>(null);
 
-const StoreMap = ({ items }: StoreMapProps) => {
-  const { data: sections, isLoading, isError } = useQuery<Section[]>({
-    queryKey: ['sections'],
-    queryFn: fetchSections,
-  });
+  const handleMouseEnter = (id: string) => {
+    setHoveredSection(id);
+  };
 
-  const departmentLocations = useMemo(() => {
-    if (!sections || sections.length === 0) return {};
-    return sections.reduce((acc, section) => {
-      if (section && 
-          typeof section.grid_row === 'number' && 
-          typeof section.grid_col === 'number') {
-        acc[section.name] = { 
-          grid_row: section.grid_row, 
-          grid_col: section.grid_col
-        };
-      }
-      return acc;
-    }, {} as { [key: string]: { grid_row: number; grid_col: number } });
-  }, [sections]);
+  const handleMouseLeave = () => {
+    setHoveredSection(null);
+  };
 
-  const [cartPosition, setCartPosition] = useState<{ grid_row: number; grid_col: number } | null>(null);
-  const shortestPath = useOptimalPath(items, departmentLocations);
+  const handleClick = (section: StoreSection) => {
+    alert(`You clicked on the "${section.name}" section!`);
+  };
 
-  const gridCols = 12;
-  const gridRows = 8;
-
-  useEffect(() => {
-    if (!departmentLocations || Object.keys(departmentLocations).length === 0) return;
-
-    const locatableItems = items.filter(item => departmentLocations[item.department]);
-    const allItemsChecked = locatableItems.length > 0 && locatableItems.every(item => item.checked);
-
-    if (allItemsChecked && departmentLocations['Checkout']) {
-      setCartPosition(departmentLocations['Checkout']);
-    } else if (departmentLocations['Entrance']) {
-      setCartPosition(departmentLocations['Entrance']);
-    }
-  }, [items, departmentLocations]);
-
-  const itemDepartments = useMemo(() => new Set(items.filter(i => !i.checked).map(i => i.department)), [items]);
-
-  if (isLoading) {
-    return (
-      <Card className="h-full">
-        <CardHeader className="flex flex-row items-center gap-2">
-          <MapIcon className="h-5 w-5 text-primary" />
-          <CardTitle>Store Map</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="w-full h-[400px] rounded-lg" />
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (isError || !sections) {
-    return (
-      <Card className="h-full">
-        <CardHeader className="flex flex-row items-center gap-2">
-          <MapIcon className="h-5 w-5 text-primary" />
-          <CardTitle>Store Map</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p>Could not load store map.</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const CELL_SIZE = 40;
-  const svgWidth = gridCols * CELL_SIZE;
-  const svgHeight = gridRows * CELL_SIZE;
+  // The overall SVG viewBox dimensions, meticulously adjusted to tightly fit the new denser layout.
+  // These values are derived from the coordinates used in mapData.ts to ensure
+  // the map fills the available SVG space without excessive empty borders, matching the reference.
+  const svgWidth = 980; // Adjusted based on max X + width of rightmost section
+  const svgHeight = 720; // Adjusted based on max Y + height of bottommost section + label space
 
   return (
-    <Card className="h-full">
-      <CardHeader className="flex flex-row items-center gap-2">
-        <MapIcon className="h-5 w-5 text-primary" />
-        <CardTitle>Store Map</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex justify-center">
-          <div className="relative rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden p-4">
-            <svg width={svgWidth} height={svgHeight} className="block">
-              {/* Draw path */}
-              {shortestPath && shortestPath.length > 1 && (
-                <polyline
-                  points={shortestPath
-                    .filter(p => p && typeof p.grid_col === 'number' && typeof p.grid_row === 'number')
-                    .map(p => `${p.grid_col * CELL_SIZE},${p.grid_row * CELL_SIZE}`)
-                    .join(' ')}
-                  className="fill-none stroke-blue-500/70"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeDasharray="5 5"
-                />
-              )}
+    <div className="w-full max-w-7xl bg-white shadow-2xl rounded-3xl p-8 md:p-12 flex flex-col items-center border border-gray-100">
+      <div className="w-full h-auto relative" style={{ paddingTop: `${(svgHeight / svgWidth) * 100}%` }}>
+        <svg
+          viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+          className="absolute top-0 left-0 w-full h-full"
+          preserveAspectRatio="xMidYMid meet" // Ensures the SVG scales correctly while maintaining aspect ratio
+        >
+          {/* Main store boundary - for visual framing, adjusted to match image's overall space */}
+          <rect
+            x="10" y="10" width={svgWidth - 20} height={svgHeight - 20}
+            className="fill-gray-100 stroke-gray-300 stroke-2 rounded-lg"
+          />
 
-              {/* Draw sections as squares */}
-              {sections.map(section => {
-                if (!section || 
-                    typeof section.grid_row !== 'number' || 
-                    typeof section.grid_col !== 'number') {
-                  return null;
-                }
-                
-                const isItemDept = itemDepartments.has(section.name);
-                const isSpecial = section.name === 'Entrance' || section.name === 'Checkout';
-                
-                const x = (section.grid_col - 1) * CELL_SIZE;
-                const y = (section.grid_row - 1) * CELL_SIZE;
-                const size = CELL_SIZE;
-
-                return (
-                  <g key={section.id}>
-                    <rect
-                      x={x}
-                      y={y}
-                      width={size}
-                      height={size}
-                      rx="4"
-                      className={cn(
-                        "transition-all stroke-1",
-                        isItemDept
-                          ? "fill-blue-100 dark:fill-blue-900/50 stroke-blue-400 dark:stroke-blue-600"
-                          : isSpecial
-                          ? "fill-slate-200 dark:fill-slate-800/50 stroke-slate-400 dark:stroke-slate-600"
-                          : "fill-white dark:fill-slate-800/80 stroke-slate-300 dark:stroke-slate-700"
-                      )}
-                    />
-                    <text
-                      x={x + size / 2}
-                      y={y + size / 2}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      className={cn(
-                        "text-[8px] font-medium pointer-events-none",
-                        isItemDept
-                          ? "fill-blue-800 dark:fill-blue-200 font-bold"
-                          : "fill-slate-600 dark:fill-slate-400"
-                      )}
-                    >
-                      {section.name}
-                    </text>
-                  </g>
-                );
-              })}
-            </svg>
-
-            {/* Draw cart icon */}
-            {cartPosition && (
-              <div
-                className="absolute top-0 left-0 transition-all duration-1000 ease-in-out pointer-events-none"
-                style={{
-                  transform: `translate(${cartPosition.grid_col * CELL_SIZE + 16}px, ${cartPosition.grid_row * CELL_SIZE + 16}px)`,
-                }}
+          {storeSections.map((section) => (
+            <g key={section.id}>
+              {/* Rectangle representing the store section */}
+              <rect
+                x={section.x}
+                y={section.y}
+                width={section.width}
+                height={section.height}
+                className={`
+                  stroke-2 rounded-sm // Slightly less rounded for a tighter look
+                  ${hoveredSection === section.id
+                    ? 'fill-blue-400 stroke-blue-600 shadow-lg' // Highlighted style
+                    : 'fill-gray-200 stroke-gray-400' // Default style
+                  }
+                  transition-all duration-200 ease-in-out cursor-pointer
+                `}
+                onMouseEnter={() => handleMouseEnter(section.id)}
+                onMouseLeave={handleMouseLeave}
+                onClick={() => handleClick(section)}
+              />
+              {/* Text label for the section */}
+              <text
+                x={section.x + section.width / 2}
+                y={section.y + section.height / 2 + 2} // Adjust Y slightly for vertical centering
+                textAnchor="middle" // Centers text horizontally
+                dominantBaseline="middle" // Centers text vertically
+                className={`
+                  pointer-events-none // Important: prevents text from interfering with rect's events
+                  font-semibold text-[8px] sm:text-[10px] md:text-xs lg:text-sm // Fine-tuned text size
+                  ${hoveredSection === section.id ? 'fill-white' : 'fill-gray-700'}
+                  transition-colors duration-200 ease-in-out
+                `}
+                // Dynamic font size adjustment for smaller sections
+                style={{ fontSize: Math.min(section.width / section.name.length * 1.8, section.height * 0.4, 14) }}
               >
-                <div className="relative flex items-center justify-center -translate-x-1/2 -translate-y-1/2">
-                  <ShoppingCart className="h-6 w-6 text-blue-600 fill-blue-400 z-10" />
-                  <div className="absolute h-6 w-6 rounded-full bg-blue-500/50 animate-ping"></div>
-                </div>
-              </div>
-            )}
-          </div>
+                {section.name}
+              </text>
+            </g>
+          ))}
+
+          {/* Static elements to represent general areas and points of interest */}
+          {/* Restrooms Icon/Label (aligned to top right in the image) */}
+          <g>
+            <rect x="880" y="15" width="80" height="30" className="fill-blue-100 stroke-blue-400 rounded-md" />
+            <text x="920" y="32" textAnchor="middle" dominantBaseline="middle" className="fill-blue-800 font-bold text-xs">Restrooms</text>
+          </g>
+
+          {/* Entrance/Exit Labels, precisely repositioned to fit the denser layout from the image */}
+          <text x="145" y="690" textAnchor="middle" className="fill-green-700 font-bold text-lg">Entrance</text>
+          <text x="220" y="690" textAnchor="middle" className="fill-red-700 font-bold text-lg">Exit</text>
+
+          <text x="600" y="690" textAnchor="middle" className="fill-red-700 font-bold text-lg">Exit</text>
+          <text x="680" y="690" textAnchor="middle" className="fill-green-700 font-bold text-lg">Entrance</text>
+
+        </svg>
+      </div>
+
+      {/* Display name of hovered section */}
+      {hoveredSection && (
+        <div className="mt-8 p-4 bg-gradient-to-r from-blue-100 to-indigo-100 border border-blue-300 rounded-lg shadow-md text-blue-800 text-lg font-semibold animate-fade-in">
+          You are exploring: <span className="text-blue-900">{storeSections.find(s => s.id === hoveredSection)?.name}</span>
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 };
 

@@ -20,70 +20,26 @@ const StoreMap = ({ items }: StoreMapProps) => {
     queryFn: fetchSections,
   });
 
-  const sectionDimensions = useMemo(() => ({
-    'Entrance': { width: 2, height: 1 },
-    'Checkout': { width: 4, height: 1 },
-    'Dairy': { width: 2, height: 1 },
-    'Deli': { width: 2, height: 1 },
-    'Fresh Produce': { width: 3, height: 2 },
-    'Grocery': { width: 5, height: 3 },
-    'Paper & Cleaning': { width: 2, height: 2 },
-    'Meat': { width: 3, height: 1 },
-    'Electronics': { width: 4, height: 2 },
-    'Home': { width: 4, height: 2 },
-    'Pharmacy': { width: 2, height: 1 },
-    'Bakery': { width: 2, height: 2 },
-    'Frozen': { width: 3, height: 1 },
-    'Snacks': { width: 2, height: 2 },
-    'Personal Care & Beauty': { width: 2, height: 2 },
-  }), []);
-
-  const augmentedSections = useMemo(() => {
-    if (!sections || !Array.isArray(sections)) return [];
-    const defaultSize = { width: 2, height: 1 };
-    return sections.map(section => ({
-      ...section,
-      ...(sectionDimensions[section.name as keyof typeof sectionDimensions] || defaultSize)
-    }));
-  }, [sections, sectionDimensions]);
-
   const departmentLocations = useMemo(() => {
-    if (!augmentedSections || augmentedSections.length === 0) return {};
-    return augmentedSections.reduce((acc, section) => {
+    if (!sections || sections.length === 0) return {};
+    return sections.reduce((acc, section) => {
       if (section && 
           typeof section.grid_row === 'number' && 
-          typeof section.grid_col === 'number' &&
-          typeof section.width === 'number' &&
-          typeof section.height === 'number') {
+          typeof section.grid_col === 'number') {
         acc[section.name] = { 
-          grid_row: section.grid_row - 1 + section.height / 2, 
-          grid_col: section.grid_col - 1 + section.width / 2
+          grid_row: section.grid_row, 
+          grid_col: section.grid_col
         };
       }
       return acc;
     }, {} as { [key: string]: { grid_row: number; grid_col: number } });
-  }, [augmentedSections]);
+  }, [sections]);
 
   const [cartPosition, setCartPosition] = useState<{ grid_row: number; grid_col: number } | null>(null);
   const shortestPath = useOptimalPath(items, departmentLocations);
 
-  const { gridCols, gridRows } = useMemo(() => {
-    if (!augmentedSections || augmentedSections.length === 0) return { gridCols: 12, gridRows: 8 };
-    
-    let maxCol = 12;
-    let maxRow = 8;
-    
-    augmentedSections.forEach(s => {
-      if (typeof s.grid_col === 'number' && typeof s.width === 'number') {
-        maxCol = Math.max(maxCol, s.grid_col + s.width - 1);
-      }
-      if (typeof s.grid_row === 'number' && typeof s.height === 'number') {
-        maxRow = Math.max(maxRow, s.grid_row + s.height - 1);
-      }
-    });
-    
-    return { gridCols: maxCol, gridRows: maxRow };
-  }, [augmentedSections]);
+  const gridCols = 12;
+  const gridRows = 8;
 
   useEffect(() => {
     if (!departmentLocations || Object.keys(departmentLocations).length === 0) return;
@@ -129,8 +85,8 @@ const StoreMap = ({ items }: StoreMapProps) => {
   }
 
   const CELL_SIZE = 40;
-  const svgWidth = Math.max(gridCols * CELL_SIZE, 400);
-  const svgHeight = Math.max(gridRows * CELL_SIZE, 300);
+  const svgWidth = gridCols * CELL_SIZE;
+  const svgHeight = gridRows * CELL_SIZE;
 
   return (
     <Card className="h-full">
@@ -157,13 +113,11 @@ const StoreMap = ({ items }: StoreMapProps) => {
                 />
               )}
 
-              {/* Draw sections as rectangles */}
-              {augmentedSections.map(section => {
+              {/* Draw sections as squares */}
+              {sections.map(section => {
                 if (!section || 
                     typeof section.grid_row !== 'number' || 
-                    typeof section.grid_col !== 'number' ||
-                    typeof section.width !== 'number' ||
-                    typeof section.height !== 'number') {
+                    typeof section.grid_col !== 'number') {
                   return null;
                 }
                 
@@ -172,16 +126,15 @@ const StoreMap = ({ items }: StoreMapProps) => {
                 
                 const x = (section.grid_col - 1) * CELL_SIZE;
                 const y = (section.grid_row - 1) * CELL_SIZE;
-                const w = section.width * CELL_SIZE;
-                const h = section.height * CELL_SIZE;
+                const size = CELL_SIZE;
 
                 return (
                   <g key={section.id}>
                     <rect
                       x={x}
                       y={y}
-                      width={w}
-                      height={h}
+                      width={size}
+                      height={size}
                       rx="4"
                       className={cn(
                         "transition-all stroke-1",
@@ -193,12 +146,12 @@ const StoreMap = ({ items }: StoreMapProps) => {
                       )}
                     />
                     <text
-                      x={x + w / 2}
-                      y={y + h / 2}
+                      x={x + size / 2}
+                      y={y + size / 2}
                       textAnchor="middle"
                       dominantBaseline="middle"
                       className={cn(
-                        "text-[10px] font-medium pointer-events-none",
+                        "text-[8px] font-medium pointer-events-none",
                         isItemDept
                           ? "fill-blue-800 dark:fill-blue-200 font-bold"
                           : "fill-slate-600 dark:fill-slate-400"

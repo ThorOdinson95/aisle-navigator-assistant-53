@@ -228,8 +228,8 @@ const StoreMap = ({ items }: StoreMapProps) => {
           </div>
         </div>
       </CardContent>
-    );
-  }
+    </Card>
+  );
 };
 
 export default StoreMap;

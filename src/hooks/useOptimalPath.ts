@@ -50,15 +50,16 @@ export const useOptimalPath = (
           currentLocation = nearestDept;
           remainingDepts = remainingDepts.filter(d => d !== nearestDept);
         } else {
-          // Safeguard, should not be reached if remainingDepts is not empty.
           break;
         }
       }
       pathOrder.push('Checkout');
     }
     
-    // Map department names to location objects
-    const departmentPoints = pathOrder.map(dept => departmentLocations[dept]).filter(Boolean);
+    // Map department names to location objects, filtering out any undefined locations
+    const departmentPoints = pathOrder
+      .map(dept => departmentLocations[dept])
+      .filter(location => location && typeof location.grid_row === 'number' && typeof location.grid_col === 'number');
 
     // Generate full path with aisles
     return generatePath(departmentPoints);

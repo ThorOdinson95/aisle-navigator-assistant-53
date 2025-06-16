@@ -23,23 +23,23 @@ const StoreMap = ({ items }: StoreMapProps) => {
   const sectionDimensions = useMemo(() => ({
     'Entrance': { width: 2, height: 1 },
     'Checkout': { width: 4, height: 1 },
-    'Dairy': { width: 4, height: 1 },
+    'Dairy': { width: 2, height: 1 },
     'Deli': { width: 2, height: 1 },
     'Fresh Produce': { width: 3, height: 2 },
     'Grocery': { width: 5, height: 3 },
     'Paper & Cleaning': { width: 2, height: 2 },
     'Meat': { width: 3, height: 1 },
-    'Electronics': { width: 3, height: 2 },
+    'Electronics': { width: 4, height: 2 },
     'Home': { width: 4, height: 2 },
     'Pharmacy': { width: 2, height: 1 },
     'Bakery': { width: 2, height: 2 },
-    'Frozen': { width: 4, height: 1 },
+    'Frozen': { width: 3, height: 1 },
     'Snacks': { width: 2, height: 2 },
     'Personal Care & Beauty': { width: 2, height: 2 },
   }), []);
 
   const augmentedSections = useMemo(() => {
-    if (!sections) return [];
+    if (!sections || !Array.isArray(sections)) return [];
     const defaultSize = { width: 2, height: 1 };
     return sections.map(section => ({
       ...section,
@@ -48,12 +48,14 @@ const StoreMap = ({ items }: StoreMapProps) => {
   }, [sections, sectionDimensions]);
 
   const departmentLocations = useMemo(() => {
-    if (!augmentedSections.length) return {};
+    if (!augmentedSections || augmentedSections.length === 0) return {};
     return augmentedSections.reduce((acc, section) => {
-      acc[section.name] = { 
-        grid_row: section.grid_row - 1 + section.height / 2, 
-        grid_col: section.grid_col - 1 + section.width / 2
-      };
+      if (section && typeof section.grid_row === 'number' && typeof section.grid_col === 'number') {
+        acc[section.name] = { 
+          grid_row: section.grid_row - 1 + (section.height || 1) / 2, 
+          grid_col: section.grid_col - 1 + (section.width || 1) / 2
+        };
+      }
       return acc;
     }, {} as { [key: string]: { grid_row: number; grid_col: number } });
   }, [augmentedSections]);
@@ -62,9 +64,9 @@ const StoreMap = ({ items }: StoreMapProps) => {
   const shortestPath = useOptimalPath(items, departmentLocations);
 
   const { gridCols, gridRows } = useMemo(() => {
-    if (!augmentedSections || augmentedSections.length === 0) return { gridCols: 0, gridRows: 0 };
-    const maxCol = Math.max(...augmentedSections.map(s => s.grid_col + s.width - 1));
-    const maxRow = Math.max(...augmentedSections.map(s => s.grid_row + s.height - 1));
+    if (!augmentedSections || augmentedSections.length === 0) return { gridCols: 12, gridRows: 8 };
+    const maxCol = Math.max(...augmentedSections.map(s => (s.grid_col || 1) + (s.width || 1) - 1), 12);
+    const maxRow = Math.max(...augmentedSections.map(s => (s.grid_row || 1) + (s.height || 1) - 1), 8);
     return { gridCols: maxCol, gridRows: maxRow };
   }, [augmentedSections]);
 
@@ -74,9 +76,9 @@ const StoreMap = ({ items }: StoreMapProps) => {
     const locatableItems = items.filter(item => departmentLocations[item.department]);
     const allItemsChecked = locatableItems.length > 0 && locatableItems.every(item => item.checked);
 
-    if (allItemsChecked) {
+    if (allItemsChecked && departmentLocations['Checkout']) {
       setCartPosition(departmentLocations['Checkout']);
-    } else {
+    } else if (departmentLocations['Entrance']) {
       setCartPosition(departmentLocations['Entrance']);
     }
   }, [items, departmentLocations]);
@@ -112,8 +114,8 @@ const StoreMap = ({ items }: StoreMapProps) => {
   }
 
   const CELL_SIZE = 40;
-  const svgWidth = gridCols * CELL_SIZE;
-  const svgHeight = gridRows * CELL_SIZE;
+  const svgWidth = Math.max(gridCols * CELL_SIZE, 400);
+  const svgHeight = Math.max(gridRows * CELL_SIZE, 300);
 
   return (
     <Card className="h-full">
@@ -126,7 +128,7 @@ const StoreMap = ({ items }: StoreMapProps) => {
           <div className="relative rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden p-4">
             <svg width={svgWidth} height={svgHeight} className="block">
               {/* Draw path */}
-              {shortestPath.length > 1 && (
+              {shortestPath && shortestPath.length > 1 && (
                 <polyline
                   points={shortestPath.map(p => `${p.grid_col * CELL_SIZE},${p.grid_row * CELL_SIZE}`).join(' ')}
                   className="fill-none stroke-blue-500/70"
@@ -139,13 +141,15 @@ const StoreMap = ({ items }: StoreMapProps) => {
 
               {/* Draw sections as rectangles */}
               {augmentedSections.map(section => {
+                if (!section || typeof section.grid_row !== 'number' || typeof section.grid_col !== 'number') return null;
+                
                 const isItemDept = itemDepartments.has(section.name);
                 const isSpecial = section.name === 'Entrance' || section.name === 'Checkout';
                 
                 const x = (section.grid_col - 1) * CELL_SIZE;
                 const y = (section.grid_row - 1) * CELL_SIZE;
-                const w = section.width * CELL_SIZE;
-                const h = section.height * CELL_SIZE;
+                const w = (section.width || 1) * CELL_SIZE;
+                const h = (section.height || 1) * CELL_SIZE;
 
                 return (
                   <g key={section.id}>
@@ -188,12 +192,12 @@ const StoreMap = ({ items }: StoreMapProps) => {
               <div
                 className="absolute top-0 left-0 transition-all duration-1000 ease-in-out pointer-events-none"
                 style={{
-                  transform: `translate(${cartPosition.grid_col * CELL_SIZE}px, ${cartPosition.grid_row * CELL_SIZE}px)`,
+                  transform: `translate(${cartPosition.grid_col * CELL_SIZE + 16}px, ${cartPosition.grid_row * CELL_SIZE + 16}px)`,
                 }}
               >
                 <div className="relative flex items-center justify-center -translate-x-1/2 -translate-y-1/2">
-                    <ShoppingCart className="h-6 w-6 text-blue-600 fill-blue-400 z-10" />
-                    <div className="absolute h-6 w-6 rounded-full bg-blue-500/50 animate-ping"></div>
+                  <ShoppingCart className="h-6 w-6 text-blue-600 fill-blue-400 z-10" />
+                  <div className="absolute h-6 w-6 rounded-full bg-blue-500/50 animate-ping"></div>
                 </div>
               </div>
             )}

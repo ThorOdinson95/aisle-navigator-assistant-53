@@ -2,6 +2,7 @@
 import PersonalizedSuggestions from "@/components/PersonalizedSuggestions";
 import ShoppingList from "@/components/ShoppingList";
 import StoreMap from "@/components/StoreMap";
+import Navigation from "@/components/Navigation";
 import { Store } from "lucide-react";
 import { useState } from "react";
 import type { Product as ProductSuggestion } from "@/types/supabase";
@@ -118,6 +119,9 @@ const Index = () => {
             </p>
           </div>
         </header>
+        
+        <Navigation />
+        
         <main className="grid grid-cols-1 items-start gap-6 lg:grid-cols-5">
           <div className="lg:col-span-1">
             <ShoppingList 

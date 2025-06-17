@@ -1,8 +1,13 @@
 
 import React, { useState } from 'react';
-import { storeSections, StoreSection } from '../mapData'; // Import your section data
+import { storeSections, StoreSection } from '../mapData';
+import type { ShoppingItem } from '@/pages/Index';
 
-export const StoreMap: React.FC = () => {
+interface StoreMapProps {
+  items: ShoppingItem[];
+}
+
+export const StoreMap: React.FC<StoreMapProps> = ({ items }) => {
   const [hoveredSection, setHoveredSection] = useState<string | null>(null);
 
   const handleMouseEnter = (id: string) => {
@@ -46,7 +51,7 @@ export const StoreMap: React.FC = () => {
                 width={section.width}
                 height={section.height}
                 className={`
-                  stroke-2 rounded-sm // Slightly less rounded for a tighter look
+                  stroke-2 rounded-sm
                   ${hoveredSection === section.id
                     ? 'fill-blue-400 stroke-blue-600 shadow-lg' // Highlighted style
                     : 'fill-gray-200 stroke-gray-400' // Default style
@@ -64,8 +69,8 @@ export const StoreMap: React.FC = () => {
                 textAnchor="middle" // Centers text horizontally
                 dominantBaseline="middle" // Centers text vertically
                 className={`
-                  pointer-events-none // Important: prevents text from interfering with rect's events
-                  font-semibold text-[8px] sm:text-[10px] md:text-xs lg:text-sm // Fine-tuned text size
+                  pointer-events-none
+                  font-semibold text-[8px] sm:text-[10px] md:text-xs lg:text-sm
                   ${hoveredSection === section.id ? 'fill-white' : 'fill-gray-700'}
                   transition-colors duration-200 ease-in-out
                 `}

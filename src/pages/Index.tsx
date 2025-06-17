@@ -107,10 +107,12 @@ const Index = () => {
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <Store className="h-6 w-6" />
           </div>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">
-              Walmart Aisle Navigator
-            </h1>
+          <div className="flex items-center gap-3">
+            <img 
+              src="/lovable-uploads/7e5e3d98-5a1e-4c35-8662-a9cfff9162b2.png" 
+              alt="Walmart" 
+              className="h-8 w-auto"
+            />
             <p className="text-muted-foreground">
               Your smart shopping companion
             </p>

@@ -10,25 +10,25 @@ export interface PathPoint {
 }
 
 // Fixed positions for entrance and checkout
-const ENTRANCE_POSITION = { x: 145, y: 680, name: 'Entrance', type: 'entrance' as const };
-const CHECKOUT_POSITION = { x: 515, y:540, name: 'Checkout', type: 'checkout' as const };
+const ENTRANCE_POSITION: PathPoint = { x: 145, y: 680, name: 'Entrance', type: 'entrance' };
+const CHECKOUT_POSITION: PathPoint = { x: 515, y:540, name: 'Checkout', type: 'checkout' };
 
 // Define main aisle waypoints for navigation
-const AISLE_WAYPOINTS = [
+const AISLE_WAYPOINTS: PathPoint[] = [
   // Main horizontal aisles
-  { x: 400, y: 120, name: 'Main Aisle North', type: 'aisle' as const },
-  { x: 400, y: 200, name: 'Central Aisle', type: 'aisle' as const },
-  { x: 400, y: 350, name: 'Main Aisle South', type: 'aisle' as const },
-  { x: 400, y: 480, name: 'Checkout Approach', type: 'aisle' as const },
+  { x: 400, y: 120, name: 'Main Aisle North', type: 'aisle' },
+  { x: 400, y: 200, name: 'Central Aisle', type: 'aisle' },
+  { x: 400, y: 350, name: 'Main Aisle South', type: 'aisle' },
+  { x: 400, y: 480, name: 'Checkout Approach', type: 'aisle' },
   
   // Vertical connecting aisles
-  { x: 200, y: 350, name: 'West Connector', type: 'aisle' as const },
-  { x: 600, y: 350, name: 'East Connector', type: 'aisle' as const },
-  { x: 700, y: 350, name: 'Grocery Aisle', type: 'aisle' as const },
+  { x: 200, y: 350, name: 'West Connector', type: 'aisle' },
+  { x: 600, y: 350, name: 'East Connector', type: 'aisle' },
+  { x: 700, y: 350, name: 'Grocery Aisle', type: 'aisle' },
   
   // Entry/exit connectors
-  { x: 300, y: 600, name: 'Entry Connector', type: 'aisle' as const },
-  { x: 500, y: 600, name: 'Exit Connector', type: 'aisle' as const },
+  { x: 300, y: 600, name: 'Entry Connector', type: 'aisle' },
+  { x: 500, y: 600, name: 'Exit Connector', type: 'aisle' },
 ];
 
 const calculateDistance = (point1: PathPoint, point2: PathPoint): number => {
@@ -152,13 +152,13 @@ export const calculateOptimalPath = (items: ShoppingItem[]): PathPoint[] => {
     x: section.x + section.width / 2,
     y: section.y + section.height / 2,
     name: section.name,
-    type: 'section' as const
+    type: 'section'
   }));
 
   // Optimize order using nearest neighbor algorithm
   const orderedSections: PathPoint[] = [];
   let remainingSections = [...sectionPoints];
-  let currentPosition = ENTRANCE_POSITION;
+  let currentPosition: PathPoint = ENTRANCE_POSITION;
 
   while (remainingSections.length > 0) {
     let nearestIndex = 0;
@@ -180,7 +180,7 @@ export const calculateOptimalPath = (items: ShoppingItem[]): PathPoint[] => {
 
   // Generate complete path with aisle navigation
   const completePath: PathPoint[] = [];
-  let currentPoint = ENTRANCE_POSITION;
+  let currentPoint: PathPoint = ENTRANCE_POSITION;
 
   for (const section of orderedSections) {
     const segmentPath = generateAislePath(currentPoint, section);

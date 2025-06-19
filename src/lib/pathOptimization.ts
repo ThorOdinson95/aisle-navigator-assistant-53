@@ -9,92 +9,109 @@ export interface PathPoint {
   type: 'entrance' | 'section' | 'checkout';
 }
 
-// Fixed positions for entrance and checkout on walkways
+// Fixed positions for entrance and checkout
 const ENTRANCE_POSITION: PathPoint = { x: 145, y: 640, name: 'Entrance', type: 'entrance' };
 const CHECKOUT_POSITION: PathPoint = { x: 515, y: 540, name: 'Checkout', type: 'checkout' };
 
-// Define the walkway grid system based on the store layout
-const WALKWAY_GRID = {
-  // Horizontal walkways (y-coordinates)
-  HORIZONTAL: [120, 350, 500, 640],
-  // Vertical walkways (x-coordinates)  
-  VERTICAL: [180, 290, 385, 585, 745]
-};
+// Precise walkway grid based on actual store layout
+const WALKWAY_INTERSECTIONS = [
+  // Main horizontal walkway intersections
+  { x: 180, y: 120 }, { x: 290, y: 120 }, { x: 385, y: 120 }, { x: 585, y: 120 }, { x: 745, y: 120 },
+  { x: 180, y: 350 }, { x: 290, y: 350 }, { x: 385, y: 350 }, { x: 585, y: 350 }, { x: 745, y: 350 },
+  { x: 180, y: 500 }, { x: 290, y: 500 }, { x: 385, y: 500 }, { x: 585, y: 500 }, { x: 745, y: 500 },
+  { x: 180, y: 640 }, { x: 290, y: 640 }, { x: 385, y: 640 }, { x: 585, y: 640 }, { x: 745, y: 640 },
+  
+  // Additional entrance/exit points
+  { x: 145, y: 640 }, // Entrance
+  { x: 220, y: 640 }, // Exit
+  { x: 600, y: 640 }, // Exit  
+  { x: 680, y: 640 }, // Entrance
+  
+  // Checkout area connections
+  { x: 515, y: 540 }, // Checkout center
+];
 
 const calculateDistance = (point1: PathPoint, point2: PathPoint): number => {
   return Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2));
 };
 
-// Get the nearest walkway intersection point for a section
-const getSectionWalkwayPoint = (section: any): PathPoint => {
+// Find the nearest walkway intersection to a section
+const getNearestWalkwayPoint = (section: any): PathPoint => {
   const centerX = section.x + section.width / 2;
   const centerY = section.y + section.height / 2;
   
-  // Find closest vertical walkway
-  let nearestVertical = WALKWAY_GRID.VERTICAL[0];
-  let minVerticalDistance = Math.abs(centerX - nearestVertical);
+  let nearestPoint = WALKWAY_INTERSECTIONS[0];
+  let minDistance = Math.sqrt(Math.pow(centerX - nearestPoint.x, 2) + Math.pow(centerY - nearestPoint.y, 2));
   
-  for (const vertical of WALKWAY_GRID.VERTICAL) {
-    const distance = Math.abs(centerX - vertical);
-    if (distance < minVerticalDistance) {
-      minVerticalDistance = distance;
-      nearestVertical = vertical;
-    }
-  }
-  
-  // Find closest horizontal walkway
-  let nearestHorizontal = WALKWAY_GRID.HORIZONTAL[0];
-  let minHorizontalDistance = Math.abs(centerY - nearestHorizontal);
-  
-  for (const horizontal of WALKWAY_GRID.HORIZONTAL) {
-    const distance = Math.abs(centerY - horizontal);
-    if (distance < minHorizontalDistance) {
-      minHorizontalDistance = distance;
-      nearestHorizontal = horizontal;
+  for (const intersection of WALKWAY_INTERSECTIONS) {
+    const distance = Math.sqrt(Math.pow(centerX - intersection.x, 2) + Math.pow(centerY - intersection.y, 2));
+    if (distance < minDistance) {
+      minDistance = distance;
+      nearestPoint = intersection;
     }
   }
   
   return {
-    x: nearestVertical,
-    y: nearestHorizontal,
+    x: nearestPoint.x,
+    y: nearestPoint.y,
     name: section.name,
     type: 'section' as const
   };
 };
 
-// Create path between two points using only walkway intersections
-const createWalkwayPath = (from: PathPoint, to: PathPoint): PathPoint[] => {
-  // If points are already on the same walkway line, go direct
+// Create walkway path between two points using only intersections
+const createWalkwayRoute = (from: PathPoint, to: PathPoint): PathPoint[] => {
+  // If points are on same horizontal or vertical line, go direct
   if (from.x === to.x || from.y === to.y) {
     return [from, to];
   }
   
-  // Create L-shaped path via intersection point
-  // Choose the intermediate point that creates the shortest total path
-  const option1: PathPoint = {
-    x: from.x,
-    y: to.y,
-    name: `Turn Point`,
-    type: 'section' as const
-  };
+  // Find intermediate walkway intersection point
+  // Try both L-shaped options and pick the one with valid intersections
+  const option1 = WALKWAY_INTERSECTIONS.find(p => p.x === from.x && p.y === to.y);
+  const option2 = WALKWAY_INTERSECTIONS.find(p => p.x === to.x && p.y === from.y);
   
-  const option2: PathPoint = {
-    x: to.x,
-    y: from.y,
-    name: `Turn Point`,
-    type: 'section' as const
-  };
-  
-  // Calculate distances for both options
-  const distance1 = calculateDistance(from, option1) + calculateDistance(option1, to);
-  const distance2 = calculateDistance(from, option2) + calculateDistance(option2, to);
-  
-  // Choose the shorter path
-  if (distance1 <= distance2) {
-    return [from, option1, to];
-  } else {
-    return [from, option2, to];
+  if (option1) {
+    const intermediate: PathPoint = {
+      x: option1.x,
+      y: option1.y,
+      name: 'Turn',
+      type: 'section' as const
+    };
+    return [from, intermediate, to];
+  } else if (option2) {
+    const intermediate: PathPoint = {
+      x: option2.x,
+      y: option2.y,
+      name: 'Turn',
+      type: 'section' as const
+    };
+    return [from, intermediate, to];
   }
+  
+  // Fallback: use closest intersection as intermediate point
+  const midX = (from.x + to.x) / 2;
+  const midY = (from.y + to.y) / 2;
+  
+  let nearestIntersection = WALKWAY_INTERSECTIONS[0];
+  let minDistance = Math.sqrt(Math.pow(midX - nearestIntersection.x, 2) + Math.pow(midY - nearestIntersection.y, 2));
+  
+  for (const intersection of WALKWAY_INTERSECTIONS) {
+    const distance = Math.sqrt(Math.pow(midX - intersection.x, 2) + Math.pow(midY - intersection.y, 2));
+    if (distance < minDistance) {
+      minDistance = distance;
+      nearestIntersection = intersection;
+    }
+  }
+  
+  const intermediate: PathPoint = {
+    x: nearestIntersection.x,
+    y: nearestIntersection.y,
+    name: 'Turn',
+    type: 'section' as const
+  };
+  
+  return [from, intermediate, to];
 };
 
 export const calculateOptimalPath = (items: ShoppingItem[]): PathPoint[] => {
@@ -107,49 +124,62 @@ export const calculateOptimalPath = (items: ShoppingItem[]): PathPoint[] => {
     return [ENTRANCE_POSITION, CHECKOUT_POSITION];
   }
 
-  // Find sections that correspond to departments with unchecked items
-  const sectionsToVisit = storeSections.filter(section => {
-    const sectionToDepartment: { [key: string]: string } = {
-      'dairy': 'Dairy',
-      'deli': 'Deli',
-      'fresh-produce': 'Fresh Produce',
-      'grocery': 'Grocery',
-      'paper-cleaning': 'Paper & Cleaning',
-      'meat': 'Meat',
-      'frozen': 'Frozen',
-      'bakery': 'Bakery',
-      'snacks': 'Snacks',
-      'candy': 'Candy',
-      'adult-beverages': 'Adult Beverages',
-      'personal-care-beauty': 'Personal Care & Beauty',
-      'pharmacy': 'Pharmacy',
-      'pet-care': 'Pet Care',
-      'electronics': 'Electronics',
-      'home': 'Home',
-      'kitchen-dining': 'Kitchen & Dining',
-      'auto-care-center': 'Auto Care Center',
-      'auto': 'Auto Accessories',
-      'tools-hardware': 'Tools & Hardware',
-      'sporting-goods': 'Sports & Outdoors',
-      'toys-games': 'Toys & Games',
-      'arts-crafts': 'Arts & Crafts',
-      'seasonal': 'Seasonal',
-      'boys': 'Boys',
-      'girls': 'Girls',
-      'baby': 'Baby',
-      'shoes': 'Shoes',
-      'mens': 'Mens',
-      'ladies': 'Ladies',
-      'jewelry-accessories': 'Jewelry & Accessories',
-      'sleepwear-panties': 'Sleepwear & Panties'
-    };
+  // Enhanced section to department mapping
+  const sectionToDepartment: { [key: string]: string } = {
+    'dairy': 'Dairy',
+    'deli': 'Deli', 
+    'fresh-produce': 'Fresh Produce',
+    'grocery': 'Grocery',
+    'paper-cleaning': 'Paper & Cleaning',
+    'meat': 'Meat',
+    'frozen': 'Frozen',
+    'bakery': 'Bakery',
+    'snacks': 'Snacks',
+    'candy': 'Candy',
+    'adult-beverages': 'Adult Beverages',
+    'personal-care-beauty': 'Personal Care & Beauty',
+    'pharmacy': 'Pharmacy',
+    'pet-care': 'Pet Care',
+    'electronics': 'Electronics',
+    'home': 'Home',
+    'kitchen-dining': 'Kitchen & Dining',
+    'auto-care-center': 'Auto Care Center',
+    'auto': 'Auto',
+    'tools-hardware': 'Tools & Hardware',
+    'sporting-goods': 'Sports & Outdoors',
+    'toys-games': 'Toys & Games',
+    'arts-crafts': 'Arts & Crafts',
+    'seasonal': 'Seasonal',
+    'boys': 'Boys',
+    'girls': 'Girls',
+    'baby': 'Baby',
+    'shoes': 'Shoes',
+    'mens': 'Mens',
+    'ladies': 'Ladies',
+    'jewelry-accessories': 'Jewelry & Accessories',
+    'sleepwear-panties': 'Sleepwear & Panties',
+    'furniture': 'Furniture',
+    'bedding': 'Bedding',
+    'bath': 'Bath',
+    'storage-laundry': 'Storage & Laundry',
+    'paint': 'Paint',
+    'home-office': 'Home Office',
+    'garden-main': 'Garden',
+    'health-wellness-bottom': 'Health & Wellness',
+    'cosmetics-bottom': 'Cosmetics'
+  };
 
+  // Find ALL sections that have unchecked items
+  const sectionsToVisit = storeSections.filter(section => {
     const departmentName = sectionToDepartment[section.id];
     return departmentName && uncheckedDepartments.has(departmentName);
   });
 
+  console.log('Sections to visit:', sectionsToVisit.map(s => s.name));
+  console.log('Unchecked departments:', Array.from(uncheckedDepartments));
+
   // Convert sections to walkway points
-  const sectionPoints = sectionsToVisit.map(section => getSectionWalkwayPoint(section));
+  const sectionPoints = sectionsToVisit.map(section => getNearestWalkwayPoint(section));
 
   // Optimize order using nearest neighbor algorithm
   const orderedPoints: PathPoint[] = [];
@@ -180,7 +210,7 @@ export const calculateOptimalPath = (items: ShoppingItem[]): PathPoint[] => {
   for (let i = 0; i < orderedPoints.length; i++) {
     const lastPoint = fullPath[fullPath.length - 1];
     const nextPoint = orderedPoints[i];
-    const walkwaySegment = createWalkwayPath(lastPoint, nextPoint);
+    const walkwaySegment = createWalkwayRoute(lastPoint, nextPoint);
     
     // Add all points except the first (to avoid duplication)
     fullPath.push(...walkwaySegment.slice(1));
@@ -188,20 +218,21 @@ export const calculateOptimalPath = (items: ShoppingItem[]): PathPoint[] => {
   
   // Add path to checkout
   const lastPoint = fullPath[fullPath.length - 1];
-  const checkoutPath = createWalkwayPath(lastPoint, CHECKOUT_POSITION);
+  const checkoutPath = createWalkwayRoute(lastPoint, CHECKOUT_POSITION);
   fullPath.push(...checkoutPath.slice(1));
 
-  // Remove duplicate consecutive points to clean up the path
+  // Remove duplicate consecutive points
   const cleanPath: PathPoint[] = [fullPath[0]];
   for (let i = 1; i < fullPath.length; i++) {
     const current = fullPath[i];
     const previous = cleanPath[cleanPath.length - 1];
     
-    // Only add point if it's different from the previous one
     if (current.x !== previous.x || current.y !== previous.y) {  
       cleanPath.push(current);
     }
   }
+
+  console.log('Final path points:', cleanPath.map(p => `${p.name} (${p.x}, ${p.y})`));
 
   return cleanPath;
 };

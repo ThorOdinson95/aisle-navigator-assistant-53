@@ -50,7 +50,7 @@ export const StoreMap: React.FC<StoreMapProps> = ({ items }) => {
         {uncheckedItemsCount > 0 ? (
           <p className="text-sm text-gray-600 flex items-center gap-2">
             <MapPin className="h-4 w-4" />
-            Optimized aisle navigation for {uncheckedItemsCount} item{uncheckedItemsCount !== 1 ? 's' : ''} • Follow the blue path through store aisles
+            Optimized navigation for {uncheckedItemsCount} item{uncheckedItemsCount !== 1 ? 's' : ''} • Follow the blue path through store walkways
           </p>
         ) : (
           <p className="text-sm text-gray-600">All items collected! Navigate to checkout when ready.</p>
@@ -69,19 +69,20 @@ export const StoreMap: React.FC<StoreMapProps> = ({ items }) => {
             className="fill-gray-100 stroke-gray-300 stroke-2 rounded-lg"
           />
 
-          {/* Aisle markings - light gray lines to show walkways */}
-          <g className="opacity-30">
-            {/* Main horizontal aisles */}
-            <line x1="200" y1="120" x2="700" y2="120" className="stroke-gray-400 stroke-2" strokeDasharray="5,5" />
-            <line x1="200" y1="200" x2="700" y2="200" className="stroke-gray-400 stroke-2" strokeDasharray="5,5" />
-            <line x1="200" y1="350" x2="700" y2="350" className="stroke-gray-400 stroke-2" strokeDasharray="5,5" />
-            <line x1="200" y1="480" x2="700" y2="480" className="stroke-gray-400 stroke-2" strokeDasharray="5,5" />
+          {/* Walkway markings - light gray lines to show clear paths */}
+          <g className="opacity-40">
+            {/* Main horizontal walkways */}
+            <line x1="50" y1="120" x2="920" y2="120" className="stroke-gray-500 stroke-3" />
+            <line x1="50" y1="350" x2="920" y2="350" className="stroke-gray-500 stroke-3" />
+            <line x1="50" y1="500" x2="920" y2="500" className="stroke-gray-500 stroke-3" />
+            <line x1="50" y1="640" x2="920" y2="640" className="stroke-gray-500 stroke-3" />
             
-            {/* Vertical connecting aisles */}
-            <line x1="200" y1="120" x2="200" y2="600" className="stroke-gray-400 stroke-2" strokeDasharray="5,5" />
-            <line x1="400" y1="100" x2="400" y2="600" className="stroke-gray-400 stroke-2" strokeDasharray="5,5" />
-            <line x1="600" y1="120" x2="600" y2="480" className="stroke-gray-400 stroke-2" strokeDasharray="5,5" />
-            <line x1="700" y1="180" x2="700" y2="600" className="stroke-gray-400 stroke-2" strokeDasharray="5,5" />
+            {/* Vertical connecting walkways */}
+            <line x1="180" y1="20" x2="180" y2="700" className="stroke-gray-500 stroke-3" />
+            <line x1="290" y1="120" x2="290" y2="700" className="stroke-gray-500 stroke-3" />
+            <line x1="385" y1="120" x2="385" y2="500" className="stroke-gray-500 stroke-3" />
+            <line x1="585" y1="120" x2="585" y2="500" className="stroke-gray-500 stroke-3" />
+            <line x1="745" y1="20" x2="745" y2="700" className="stroke-gray-500 stroke-3" />
           </g>
 
           {/* Store sections */}
@@ -122,18 +123,9 @@ export const StoreMap: React.FC<StoreMapProps> = ({ items }) => {
             </g>
           ))}
 
-          {/* Navigation Path - Enhanced with aisle following */}
+          {/* Navigation Path - Following walkways */}
           {pathSVG && (
             <g>
-              {/* Path line with enhanced styling */}
-              <path
-                d={pathSVG}
-                className="fill-none stroke-blue-600 stroke-[4] opacity-90"
-                strokeDasharray="12,6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              
               {/* Path shadow for better visibility */}
               <path
                 d={pathSVG}
@@ -142,52 +134,56 @@ export const StoreMap: React.FC<StoreMapProps> = ({ items }) => {
                 strokeLinejoin="round"
               />
               
+              {/* Main path line */}
+              <path
+                d={pathSVG}
+                className="fill-none stroke-blue-600 stroke-[4] opacity-90"
+                strokeDasharray="12,6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              
               {/* Path points */}
               {optimalPath.map((point, index) => (
                 <g key={`${point.name}-${index}`}>
-                  {/* Point circle with enhanced styling */}
+                  {/* Point circle */}
                   <circle
                     cx={point.x}
                     cy={point.y}
-                    r={point.type === 'entrance' ? 10 : point.type === 'checkout' ? 10 : point.type === 'aisle' ? 4 : 8}
+                    r={point.type === 'entrance' ? 10 : point.type === 'checkout' ? 10 : 8}
                     className={`
                       ${point.type === 'entrance' ? 'fill-green-500' : 
-                        point.type === 'checkout' ? 'fill-red-500' : 
-                        point.type === 'aisle' ? 'fill-blue-300' : 'fill-blue-500'}
+                        point.type === 'checkout' ? 'fill-red-500' : 'fill-blue-500'}
                       stroke-white stroke-2
                     `}
                   />
                   
-                  {/* Step number - only for major waypoints */}
-                  {point.type !== 'aisle' && (
-                    <text
-                      x={point.x}
-                      y={point.y + 1}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      className="fill-white font-bold text-xs pointer-events-none"
-                    >
-                      {point.type === 'entrance' ? 'S' : 
-                       point.type === 'checkout' ? 'E' : 
-                       optimalPath.filter(p => p.type === 'section').indexOf(point) + 1}
-                    </text>
-                  )}
+                  {/* Step number */}
+                  <text
+                    x={point.x}
+                    y={point.y + 1}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    className="fill-white font-bold text-xs pointer-events-none"
+                  >
+                    {point.type === 'entrance' ? 'S' : 
+                     point.type === 'checkout' ? 'E' : 
+                     optimalPath.filter(p => p.type === 'section').indexOf(point) + 1}
+                  </text>
                   
-                  {/* Point label - only for major waypoints */}
-                  {point.type !== 'aisle' && (
-                    <text
-                      x={point.x}
-                      y={point.y - 18}
-                      textAnchor="middle"
-                      className={`
-                        font-semibold text-xs pointer-events-none
-                        ${point.type === 'entrance' ? 'fill-green-700' : 
-                          point.type === 'checkout' ? 'fill-red-700' : 'fill-blue-700'}
-                      `}
-                    >
-                      {point.name}
-                    </text>
-                  )}
+                  {/* Point label */}
+                  <text
+                    x={point.x}
+                    y={point.y - 18}
+                    textAnchor="middle"
+                    className={`
+                      font-semibold text-xs pointer-events-none
+                      ${point.type === 'entrance' ? 'fill-green-700' : 
+                        point.type === 'checkout' ? 'fill-red-700' : 'fill-blue-700'}
+                    `}
+                  >
+                    {point.name}
+                  </text>
                 </g>
               ))}
 
@@ -231,34 +227,31 @@ export const StoreMap: React.FC<StoreMapProps> = ({ items }) => {
         </div>
       )}
 
-      {/* Path summary with aisle information */}
+      {/* Path summary */}
       {optimalPath.length > 2 && (
         <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200 w-full max-w-2xl">
           <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
             <Navigation className="h-4 w-4" />
-            Aisle-by-Aisle Navigation Route
+            Navigation Route
           </h3>
           <div className="flex flex-wrap gap-2 text-sm">
-            {optimalPath.filter(point => point.type !== 'aisle').map((point, index) => {
-              const filteredPoints = optimalPath.filter(p => p.type !== 'aisle');
-              return (
-                <span
-                  key={`${point.name}-${index}`}
-                  className={`
-                    px-2 py-1 rounded text-white font-medium
-                    ${point.type === 'entrance' ? 'bg-green-500' : 
-                      point.type === 'checkout' ? 'bg-red-500' : 'bg-blue-500'}
-                  `}
-                >
-                  {index === 0 ? 'Start' : 
-                   index === filteredPoints.length - 1 ? 'Finish' : 
-                   `${index}.`} {point.name}
-                </span>
-              );
-            })}
+            {optimalPath.map((point, index) => (
+              <span
+                key={`${point.name}-${index}`}
+                className={`
+                  px-2 py-1 rounded text-white font-medium
+                  ${point.type === 'entrance' ? 'bg-green-500' : 
+                    point.type === 'checkout' ? 'bg-red-500' : 'bg-blue-500'}
+                `}
+              >
+                {index === 0 ? 'Start' : 
+                 index === optimalPath.length - 1 ? 'Finish' : 
+                 `${index}.`} {point.name}
+              </span>
+            ))}
           </div>
           <p className="text-xs text-gray-600 mt-2">
-            Route follows store aisles and walkways for efficient navigation
+            Route follows store walkways for clear navigation
           </p>
         </div>
       )}

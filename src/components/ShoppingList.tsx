@@ -12,6 +12,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useQuery } from "@tanstack/react-query";
 import { fetchProducts } from "@/lib/queries";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ProductBrowser from "./ProductBrowser";
 
 interface ShoppingListProps {
   items: ShoppingItem[];
@@ -44,6 +46,10 @@ const ShoppingList = ({ items, onCheckedChange, onAddItem, onDeleteItem }: Shopp
     setOpen(false);
   }
 
+  const handleAddProduct = (product: ProductSuggestion) => {
+    onAddItem(product);
+  };
+
   const filteredSuggestions = useMemo(() => {
     if (!productSuggestions) return [];
     if (!inputValue.trim()) {
@@ -60,57 +66,71 @@ const ShoppingList = ({ items, onCheckedChange, onAddItem, onDeleteItem }: Shopp
         <CardTitle>Shopping List</CardTitle>
       </CardHeader>
       <CardContent>
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <form onSubmit={handleAddItemForm} className="mb-4 flex items-center gap-2">
-              <Input
-                placeholder="Add or search items..."
-                value={inputValue}
-                onChange={(e) => {
-                  setInputValue(e.target.value);
-                  if (!open && e.target.value) setOpen(true);
-                }}
-                onClick={() => setOpen(true)}
-                aria-label="New shopping item"
-              />
-              <Button type="submit" size="icon" aria-label="Add item">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </form>
-          </PopoverTrigger>
-          <PopoverContent className="p-0" style={{ width: 'var(--radix-popover-trigger-width)' }}>
-            <Command shouldFilter={false}>
-              <CommandInput
-                placeholder="Search products..."
-                value={inputValue}
-                onValueChange={setInputValue}
-              />
-              <CommandList>
-                <CommandEmpty>{isLoading ? "Loading..." : "No products found."}</CommandEmpty>
-                <CommandGroup heading="Suggestions">
-                  {isLoading ? (
-                    <div className="p-2 space-y-2">
-                      <Skeleton className="h-8 w-full" />
-                      <Skeleton className="h-8 w-full" />
-                      <Skeleton className="h-8 w-full" />
-                    </div>
-                  ) : (
-                    filteredSuggestions.map((suggestion) => (
-                      <CommandItem
-                        key={suggestion.id}
-                        onSelect={() => handleSelectSuggestion(suggestion)}
-                        value={suggestion.name}
-                      >
-                        {suggestion.name}
-                      </CommandItem>
-                    ))
-                  )}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-        <ul className="h-full max-h-[450px] space-y-4 overflow-y-auto pr-2">
+        <Tabs defaultValue="search" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsTrigger value="search">Search</TabsTrigger>
+            <TabsTrigger value="browse">Browse</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="search" className="space-y-4">
+            <Popover open={open} onOpenChange={setOpen}>
+              <PopoverTrigger asChild>
+                <form onSubmit={handleAddItemForm} className="flex items-center gap-2">
+                  <Input
+                    placeholder="Add or search items..."
+                    value={inputValue}
+                    onChange={(e) => {
+                      setInputValue(e.target.value);
+                      if (!open && e.target.value) setOpen(true);
+                    }}
+                    onClick={() => setOpen(true)}
+                    aria-label="New shopping item"
+                  />
+                  <Button type="submit" size="icon" aria-label="Add item">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </form>
+              </PopoverTrigger>
+              <PopoverContent className="p-0" style={{ width: 'var(--radix-popover-trigger-width)' }}>
+                <Command shouldFilter={false}>
+                  <CommandInput
+                    placeholder="Search products..."
+                    value={inputValue}
+                    onValueChange={setInputValue}
+                  />
+                  <CommandList>
+                    <CommandEmpty>{isLoading ? "Loading..." : "No products found."}</CommandEmpty>
+                    <CommandGroup heading="Suggestions">
+                      {isLoading ? (
+                        <div className="p-2 space-y-2">
+                          <Skeleton className="h-8 w-full" />
+                          <Skeleton className="h-8 w-full" />
+                          <Skeleton className="h-8 w-full" />
+                        </div>
+                      ) : (
+                        filteredSuggestions.map((suggestion) => (
+                          <CommandItem
+                            key={suggestion.id}
+                            onSelect={() => handleSelectSuggestion(suggestion)}
+                            value={suggestion.name}
+                          >
+                            {suggestion.name}
+                          </CommandItem>
+                        ))
+                      )}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </TabsContent>
+          
+          <TabsContent value="browse">
+            <ProductBrowser onAddProduct={handleAddProduct} />
+          </TabsContent>
+        </Tabs>
+
+        <ul className="h-full max-h-[450px] space-y-4 overflow-y-auto pr-2 mt-4">
           {items.map((item) => (
             <li key={item.id} className="flex items-center gap-3 animate-fade-in group">
               <Checkbox

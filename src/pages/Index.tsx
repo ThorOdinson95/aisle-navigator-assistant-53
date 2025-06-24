@@ -120,7 +120,7 @@ const Index = () => {
         </header>
         
         <main className="grid grid-cols-1 items-start gap-6 lg:grid-cols-5">
-          <div className="lg:col-span-1 flex flex-col">
+          <div className="lg:col-span-1 flex flex-col h-fit">
             <ShoppingList 
               items={shoppingItems} 
               onCheckedChange={handleCheckedChange}
@@ -128,12 +128,16 @@ const Index = () => {
               onDeleteItem={handleDeleteItem}
             />
           </div>
-          <div className="lg:col-span-3 flex flex-col">
+          <div className="lg:col-span-3 flex flex-col h-fit">
             <StoreMap items={shoppingItems} />
           </div>
-          <div className="lg:col-span-1 flex flex-col gap-6">
-            <PersonalizedSuggestions items={shoppingItems} />
-            <StoreWideDeals />
+          <div className="lg:col-span-1 flex flex-col gap-6 h-fit">
+            <div className="min-h-[300px] flex flex-col">
+              <PersonalizedSuggestions items={shoppingItems} />
+            </div>
+            <div className="min-h-[250px] flex flex-col">
+              <StoreWideDeals />
+            </div>
           </div>
         </main>
       </div>

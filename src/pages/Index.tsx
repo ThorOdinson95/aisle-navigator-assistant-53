@@ -1,3 +1,4 @@
+
 import PersonalizedSuggestions from "@/components/PersonalizedSuggestions";
 import ShoppingList from "@/components/ShoppingList";
 import StoreMap from "@/components/StoreMap";
@@ -119,7 +120,7 @@ const Index = () => {
         </header>
         
         <main className="grid grid-cols-1 items-start gap-6 lg:grid-cols-5">
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 flex flex-col">
             <ShoppingList 
               items={shoppingItems} 
               onCheckedChange={handleCheckedChange}
@@ -127,7 +128,7 @@ const Index = () => {
               onDeleteItem={handleDeleteItem}
             />
           </div>
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 flex flex-col">
             <StoreMap items={shoppingItems} />
           </div>
           <div className="lg:col-span-1 flex flex-col gap-6">

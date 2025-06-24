@@ -13,32 +13,55 @@ export interface PathPoint {
 const ENTRANCE_POSITION: PathPoint = { x: 145, y: 640, name: 'Entrance', type: 'entrance' };
 const CHECKOUT_POSITION: PathPoint = { x: 515, y: 540, name: 'Checkout', type: 'checkout' };
 
-// More comprehensive walkway grid based on actual store layout
+// More accurate walkway grid based on actual store layout - avoiding all sections
 const WALKWAY_GRID = [
-  // Bottom walkway (y=640)
-  { x: 50, y: 640 }, { x: 145, y: 640 }, { x: 180, y: 640 }, { x: 220, y: 640 }, 
-  { x: 290, y: 640 }, { x: 385, y: 640 }, { x: 515, y: 640 }, { x: 585, y: 640 }, 
-  { x: 600, y: 640 }, { x: 680, y: 640 }, { x: 745, y: 640 }, { x: 850, y: 640 },
+  // Bottom main walkway (y=650) - below all sections
+  { x: 50, y: 650 }, { x: 100, y: 650 }, { x: 145, y: 650 }, { x: 200, y: 650 }, 
+  { x: 250, y: 650 }, { x: 300, y: 650 }, { x: 350, y: 650 }, { x: 400, y: 650 },
+  { x: 450, y: 650 }, { x: 500, y: 650 }, { x: 550, y: 650 }, { x: 600, y: 650 }, 
+  { x: 650, y: 650 }, { x: 700, y: 650 }, { x: 750, y: 650 }, { x: 800, y: 650 },
+  { x: 850, y: 650 }, { x: 900, y: 650 },
   
-  // Mid-low walkway (y=500)
-  { x: 180, y: 500 }, { x: 290, y: 500 }, { x: 385, y: 500 }, { x: 515, y: 500 }, 
-  { x: 585, y: 500 }, { x: 745, y: 500 },
+  // Mid-low walkway (y=520) - between checkout and sections
+  { x: 200, y: 520 }, { x: 250, y: 520 }, { x: 300, y: 520 }, { x: 350, y: 520 },
+  { x: 400, y: 520 }, { x: 450, y: 520 }, { x: 500, y: 520 }, { x: 550, y: 520 }, 
+  { x: 600, y: 520 }, { x: 650, y: 520 }, { x: 700, y: 520 }, { x: 740, y: 520 },
   
-  // Mid walkway (y=350) 
-  { x: 180, y: 350 }, { x: 290, y: 350 }, { x: 385, y: 350 }, { x: 585, y: 350 }, { x: 745, y: 350 },
+  // Mid walkway (y=380) - between apparel and grocery sections
+  { x: 200, y: 380 }, { x: 250, y: 380 }, { x: 300, y: 380 }, { x: 350, y: 380 },
+  { x: 400, y: 380 }, { x: 450, y: 380 }, { x: 500, y: 380 }, { x: 550, y: 380 }, 
+  { x: 600, y: 380 }, { x: 650, y: 380 }, { x: 700, y: 380 }, { x: 740, y: 380 },
   
-  // Upper walkway (y=120)
-  { x: 180, y: 120 }, { x: 290, y: 120 }, { x: 385, y: 120 }, { x: 585, y: 120 }, { x: 745, y: 120 },
+  // Upper walkway (y=130) - between top sections and middle sections
+  { x: 200, y: 130 }, { x: 250, y: 130 }, { x: 300, y: 130 }, { x: 350, y: 130 },
+  { x: 400, y: 130 }, { x: 450, y: 130 }, { x: 500, y: 130 }, { x: 550, y: 130 }, 
+  { x: 600, y: 130 }, { x: 650, y: 130 }, { x: 700, y: 130 }, { x: 740, y: 130 },
   
-  // Vertical connectors
-  { x: 180, y: 50 }, { x: 180, y: 200 }, { x: 180, y: 280 }, { x: 180, y: 420 },
-  { x: 290, y: 180 }, { x: 290, y: 280 }, { x: 290, y: 420 },
-  { x: 385, y: 50 }, { x: 385, y: 200 }, { x: 385, y: 280 },
-  { x: 585, y: 50 }, { x: 585, y: 200 }, { x: 585, y: 280 },
-  { x: 745, y: 50 }, { x: 745, y: 200 }, { x: 745, y: 280 }, { x: 745, y: 420 }, { x: 745, y: 550 },
+  // Left vertical connector (x=180) - avoiding all sections on left
+  { x: 180, y: 60 }, { x: 180, y: 130 }, { x: 180, y: 200 }, { x: 180, y: 270 },
+  { x: 180, y: 340 }, { x: 180, y: 380 }, { x: 180, y: 450 }, { x: 180, y: 520 }, 
+  { x: 180, y: 580 }, { x: 180, y: 650 },
+  
+  // Center vertical connectors
+  { x: 300, y: 60 }, { x: 300, y: 130 }, { x: 300, y: 200 }, { x: 300, y: 270 },
+  { x: 300, y: 340 }, { x: 300, y: 380 }, { x: 300, y: 450 }, { x: 300, y: 520 },
+  { x: 300, y: 580 }, { x: 300, y: 650 },
+  
+  { x: 400, y: 60 }, { x: 400, y: 100 }, { x: 400, y: 130 }, { x: 400, y: 200 },
+  { x: 400, y: 270 }, { x: 400, y: 340 }, { x: 400, y: 380 }, { x: 400, y: 520 },
+  { x: 400, y: 580 }, { x: 400, y: 650 },
+  
+  { x: 600, y: 60 }, { x: 600, y: 100 }, { x: 600, y: 130 }, { x: 600, y: 200 },
+  { x: 600, y: 270 }, { x: 600, y: 340 }, { x: 600, y: 380 }, { x: 600, y: 520 },
+  { x: 600, y: 580 }, { x: 600, y: 650 },
+  
+  // Right vertical connector (x=740) - left of grocery sections
+  { x: 740, y: 60 }, { x: 740, y: 100 }, { x: 740, y: 130 }, { x: 740, y: 200 },
+  { x: 740, y: 260 }, { x: 740, y: 300 }, { x: 740, y: 380 }, { x: 740, y: 450 },
+  { x: 740, y: 520 }, { x: 740, y: 580 }, { x: 740, y: 650 },
 ];
 
-// Complete section to department mapping - including all departments
+// Complete and accurate section to department mapping
 const SECTION_TO_DEPARTMENT: { [key: string]: string } = {
   'dairy': 'Dairy',
   'deli': 'Deli', 
@@ -87,19 +110,28 @@ const calculateDistance = (point1: PathPoint, point2: PathPoint): number => {
   return Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2));
 };
 
-// Find the nearest walkway point to a section's center
+// Find the nearest walkway point that doesn't overlap with sections
 const getNearestWalkwayPoint = (section: any): PathPoint => {
   const centerX = section.x + section.width / 2;
   const centerY = section.y + section.height / 2;
   
+  // Find walkway points that are close but don't overlap with the section
   let nearestPoint = WALKWAY_GRID[0];
-  let minDistance = Math.sqrt(Math.pow(centerX - nearestPoint.x, 2) + Math.pow(centerY - nearestPoint.y, 2));
+  let minDistance = Infinity;
   
   for (const gridPoint of WALKWAY_GRID) {
-    const distance = Math.sqrt(Math.pow(centerX - gridPoint.x, 2) + Math.pow(centerY - gridPoint.y, 2));
-    if (distance < minDistance) {
-      minDistance = distance;
-      nearestPoint = gridPoint;
+    // Check if grid point is inside the section (overlapping)
+    const isOverlapping = gridPoint.x >= section.x && 
+                         gridPoint.x <= section.x + section.width &&
+                         gridPoint.y >= section.y && 
+                         gridPoint.y <= section.y + section.height;
+    
+    if (!isOverlapping) {
+      const distance = Math.sqrt(Math.pow(centerX - gridPoint.x, 2) + Math.pow(centerY - gridPoint.y, 2));
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearestPoint = gridPoint;
+      }
     }
   }
   
@@ -117,56 +149,40 @@ const createWalkwayPath = (from: PathPoint, to: PathPoint): PathPoint[] => {
     return [from];
   }
   
-  // Direct path if on same line
-  if (from.x === to.x || from.y === to.y) {
+  // Direct path if on same horizontal or vertical line
+  const sameX = from.x === to.x;
+  const sameY = from.y === to.y;
+  
+  if (sameX || sameY) {
     return [from, to];
   }
   
-  // L-shaped path - try both options and pick the one with valid grid points
+  // L-shaped path - try both corner options
   const corner1 = WALKWAY_GRID.find(p => p.x === from.x && p.y === to.y);
   const corner2 = WALKWAY_GRID.find(p => p.x === to.x && p.y === from.y);
   
   if (corner1) {
-    const intermediate: PathPoint = {
-      x: corner1.x,
-      y: corner1.y,
-      name: 'Turn',
-      type: 'section' as const
-    };
-    return [from, intermediate, to];
+    return [from, { x: corner1.x, y: corner1.y, name: 'Turn', type: 'section' as const }, to];
   } else if (corner2) {
-    const intermediate: PathPoint = {
-      x: corner2.x,
-      y: corner2.y,
-      name: 'Turn',
-      type: 'section' as const
-    };
-    return [from, intermediate, to];
+    return [from, { x: corner2.x, y: corner2.y, name: 'Turn', type: 'section' as const }, to];
   }
   
-  // Fallback: find nearest intermediate point
-  const midX = (from.x + to.x) / 2;
-  const midY = (from.y + to.y) / 2;
-  
-  let nearestGrid = WALKWAY_GRID[0];
-  let minDistance = Math.sqrt(Math.pow(midX - nearestGrid.x, 2) + Math.pow(midY - nearestGrid.y, 2));
+  // Find best intermediate point on walkway grid
+  let bestIntermediate = WALKWAY_GRID[0];
+  let minTotalDistance = Infinity;
   
   for (const gridPoint of WALKWAY_GRID) {
-    const distance = Math.sqrt(Math.pow(midX - gridPoint.x, 2) + Math.pow(midY - gridPoint.y, 2));
-    if (distance < minDistance) {
-      minDistance = distance;
-      nearestGrid = gridPoint;
+    const dist1 = calculateDistance(from, { x: gridPoint.x, y: gridPoint.y, name: 'temp', type: 'section' });
+    const dist2 = calculateDistance({ x: gridPoint.x, y: gridPoint.y, name: 'temp', type: 'section' }, to);
+    const totalDistance = dist1 + dist2;
+    
+    if (totalDistance < minTotalDistance) {
+      minTotalDistance = totalDistance;
+      bestIntermediate = gridPoint;
     }
   }
   
-  const intermediate: PathPoint = {
-    x: nearestGrid.x,
-    y: nearestGrid.y,
-    name: 'Turn',
-    type: 'section' as const
-  };
-  
-  return [from, intermediate, to];
+  return [from, { x: bestIntermediate.x, y: bestIntermediate.y, name: 'Turn', type: 'section' as const }, to];
 };
 
 export const calculateOptimalPath = (items: ShoppingItem[]): PathPoint[] => {
@@ -186,18 +202,18 @@ export const calculateOptimalPath = (items: ShoppingItem[]): PathPoint[] => {
     const departmentName = SECTION_TO_DEPARTMENT[section.id];
     const shouldVisit = departmentName && uncheckedDepartments.has(departmentName);
     if (shouldVisit) {
-      console.log(`Including section: ${section.name} for department: ${departmentName}`);
+      console.log(`Including section: ${section.name} (${section.id}) for department: ${departmentName}`);
     }
     return shouldVisit;
   });
 
-  console.log('Sections to visit:', sectionsToVisit.map(s => s.name));
+  console.log('Sections to visit:', sectionsToVisit.map(s => `${s.name} (${s.id})`));
 
   if (sectionsToVisit.length === 0) {
     return [ENTRANCE_POSITION, CHECKOUT_POSITION];
   }
 
-  // Convert sections to nearest walkway points
+  // Convert sections to nearest walkway points (avoiding overlaps)
   const sectionPoints = sectionsToVisit.map(section => getNearestWalkwayPoint(section));
 
   // Optimize order using nearest neighbor algorithm

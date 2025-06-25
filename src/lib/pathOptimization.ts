@@ -94,6 +94,27 @@ const calculateDistance = (point1: PathPoint, point2: PathPoint): number => {
   return Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2));
 };
 
+// Find the nearest section to a given point
+const findNearestSection = (point: { x: number; y: number }): any | null => {
+  let nearestSection = null;
+  let minDistance = Infinity;
+  
+  for (const section of storeSections) {
+    const sectionCenterX = section.x + section.width / 2;
+    const sectionCenterY = section.y + section.height / 2;
+    const distance = Math.sqrt(
+      Math.pow(point.x - sectionCenterX, 2) + Math.pow(point.y - sectionCenterY, 2)
+    );
+    
+    if (distance < minDistance) {
+      minDistance = distance;
+      nearestSection = section;
+    }
+  }
+  
+  return nearestSection;
+};
+
 // Smart walkway point selection with priority for main walkways
 const getNearestWalkwayPoint = (section: any): PathPoint => {
   const centerX = section.x + section.width / 2;
@@ -176,42 +197,6 @@ const findOptimalRoute = (points: PathPoint[]): PathPoint[] => {
   return route;
 };
 
-// Enhanced path creation with smoother routes
-const createWalkwayPath = (from: PathPoint, to: PathPoint): PathPoint[] => {
-  if (Math.abs(from.x - to.x) < 10 && Math.abs(from.y - to.y) < 10) {
-    return [from, to];
-  }
-  
-  // Find the best intermediate point on main walkways
-  const intermediateOptions = MAIN_WALKWAYS.filter(w => w.type === 'main');
-  let bestIntermediate = intermediateOptions[0];
-  let minTotalDistance = Infinity;
-  
-  for (const walkway of intermediateOptions) {
-    const intermediate = { x: walkway.x, y: walkway.y, name: 'Via', type: 'section' as const };
-    const dist1 = calculateDistance(from, intermediate);
-    const dist2 = calculateDistance(intermediate, to);
-    const totalDistance = dist1 + dist2;
-    
-    if (totalDistance < minTotalDistance) {
-      minTotalDistance = totalDistance;
-      bestIntermediate = walkway;
-    }
-  }
-  
-  const viaPoint = { x: bestIntermediate.x, y: bestIntermediate.y, name: 'Via', type: 'section' as const };
-  
-  // Check if we need the intermediate point
-  const directDistance = calculateDistance(from, to);
-  const viaDistance = calculateDistance(from, viaPoint) + calculateDistance(viaPoint, to);
-  
-  if (viaDistance < directDistance * 1.2) { // Only use via point if it's not much longer
-    return [from, viaPoint, to];
-  }
-  
-  return [from, to];
-};
-
 export const calculateOptimalPath = (items: ShoppingItem[]): PathPoint[] => {
   const uncheckedDepartments = new Set(
     items.filter(item => !item.checked).map(item => item.department)
@@ -241,30 +226,11 @@ export const calculateOptimalPath = (items: ShoppingItem[]): PathPoint[] => {
   // Create full route including entrance and checkout
   const allPoints = [ENTRANCE_POSITION, ...sectionPoints, CHECKOUT_POSITION];
   
-  // Optimize the route
+  // Optimize the route using direct connections
   const optimizedRoute = findOptimalRoute(allPoints);
   
-  // Build smooth walkway path
-  const fullPath: PathPoint[] = [optimizedRoute[0]];
-  
-  for (let i = 1; i < optimizedRoute.length; i++) {
-    const lastPoint = fullPath[fullPath.length - 1];
-    const nextPoint = optimizedRoute[i];
-    const pathSegment = createWalkwayPath(lastPoint, nextPoint);
-    
-    // Add new points, avoiding duplicates
-    for (let j = 1; j < pathSegment.length; j++) {
-      const point = pathSegment[j];
-      const lastAdded = fullPath[fullPath.length - 1];
-      
-      if (Math.abs(point.x - lastAdded.x) > 5 || Math.abs(point.y - lastAdded.y) > 5) {
-        fullPath.push(point);
-      }
-    }
-  }
-
-  console.log('Optimized navigation route:', fullPath.map(p => `${p.name} (${p.x}, ${p.y})`));
-  return fullPath;
+  console.log('Optimized navigation route:', optimizedRoute.map(p => `${p.name} (${p.x}, ${p.y})`));
+  return optimizedRoute;
 };
 
 export const generateSVGPath = (points: PathPoint[]): string => {
@@ -272,12 +238,9 @@ export const generateSVGPath = (points: PathPoint[]): string => {
   
   let path = `M ${points[0].x} ${points[0].y}`;
   
-  // Create smoother curves between points
+  // Create direct lines between points (no intermediate via points)
   for (let i = 1; i < points.length; i++) {
     const current = points[i];
-    const previous = points[i - 1];
-    
-    // Use straight lines for now, but could add curves here
     path += ` L ${current.x} ${current.y}`;
   }
   

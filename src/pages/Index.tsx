@@ -101,25 +101,25 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-muted/40 p-3 sm:p-4 lg:p-6">
+    <div className="min-h-screen w-full bg-muted/40 p-4 sm:p-6 lg:p-8">
       <div className="mx-auto w-full max-w-none">
-        <header className="mb-4 flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <Store className="h-5 w-5" />
+        <header className="mb-6 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <Store className="h-6 w-6" />
           </div>
           <div className="flex items-center gap-3">
             <img 
               src="/lovable-uploads/7e5e3d98-5a1e-4c35-8662-a9cfff9162b2.png" 
               alt="Walmart" 
-              className="h-6 w-auto"
+              className="h-8 w-auto"
             />
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground">
               Your smart shopping companion
             </p>
           </div>
         </header>
         
-        <main className="grid grid-cols-1 items-start gap-4 lg:grid-cols-5 w-full">
+        <main className="grid grid-cols-1 items-start gap-6 lg:grid-cols-5 w-full">
           <div className="lg:col-span-1 flex flex-col h-fit">
             <ShoppingList 
               items={shoppingItems} 
@@ -131,11 +131,11 @@ const Index = () => {
           <div className="lg:col-span-3 flex flex-col h-fit">
             <StoreMap items={shoppingItems} />
           </div>
-          <div className="lg:col-span-1 flex flex-col gap-4 h-fit">
-            <div className="min-h-[250px] flex flex-col">
+          <div className="lg:col-span-1 flex flex-col gap-6 h-fit">
+            <div className="min-h-[300px] flex flex-col">
               <PersonalizedSuggestions items={shoppingItems} />
             </div>
-            <div className="min-h-[200px] flex flex-col">
+            <div className="min-h-[250px] flex flex-col">
               <StoreWideDeals />
             </div>
           </div>

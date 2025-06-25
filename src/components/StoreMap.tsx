@@ -3,7 +3,8 @@ import React, { useState, useMemo } from 'react';
 import { storeSections, StoreSection } from '../mapData';
 import type { ShoppingItem } from '@/pages/Index';
 import { calculateOptimalPath, generateSVGPath, PathPoint } from '../lib/pathOptimization';
-import { MapPin, Navigation } from 'lucide-react';
+import { MapPin, Navigation, Route, RotateCcw, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface StoreMapProps {
   items: ShoppingItem[];
@@ -11,6 +12,8 @@ interface StoreMapProps {
 
 export const StoreMap: React.FC<StoreMapProps> = ({ items }) => {
   const [hoveredSection, setHoveredSection] = useState<string | null>(null);
+  const [showOptimizedRoute, setShowOptimizedRoute] = useState(true);
+  const [currentStep, setCurrentStep] = useState(0);
 
   const handleMouseEnter = (id: string) => {
     setHoveredSection(id);
@@ -21,10 +24,10 @@ export const StoreMap: React.FC<StoreMapProps> = ({ items }) => {
   };
 
   const handleClick = (section: StoreSection) => {
-    alert(`You clicked on the "${section.name}" section!`);
+    console.log(`Navigating to: ${section.name}`);
   };
 
-  // Calculate optimal path based on shopping items
+  // Calculate optimal path
   const optimalPath = useMemo(() => {
     return calculateOptimalPath(items);
   }, [items]);
@@ -33,56 +36,136 @@ export const StoreMap: React.FC<StoreMapProps> = ({ items }) => {
     return generateSVGPath(optimalPath);
   }, [optimalPath]);
 
-  // Count unchecked items for path info
-  const uncheckedItemsCount = items.filter(item => !item.checked).length;
+  // Navigation controls
+  const handleNextStep = () => {
+    if (currentStep < optimalPath.length - 1) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
 
+  const handlePreviousStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleResetNavigation = () => {
+    setCurrentStep(0);
+  };
+
+  const uncheckedItemsCount = items.filter(item => !item.checked).length;
   const svgWidth = 980;
   const svgHeight = 720;
 
   return (
-    <div className="w-full max-w-7xl bg-white shadow-2xl rounded-3xl p-8 md:p-12 flex flex-col items-center border border-gray-100">
-      {/* Heading */}
-      <div className="w-full mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <Navigation className="h-6 w-6 text-primary" />
-          <h2 className="text-2xl font-bold text-gray-900">Store Map & Navigation</h2>
+    <div className="w-full bg-white shadow-lg rounded-2xl p-6 flex flex-col items-center border border-gray-200">
+      {/* Enhanced Header */}
+      <div className="w-full mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <Navigation className="h-5 w-5 text-primary" />
+            <h2 className="text-xl font-bold text-gray-900">Smart Navigation</h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowOptimizedRoute(!showOptimizedRoute)}
+              className="text-xs"
+            >
+              <Route className="h-3 w-3 mr-1" />
+              {showOptimizedRoute ? 'Hide Route' : 'Show Route'}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleResetNavigation}
+              className="text-xs"
+            >
+              <RotateCcw className="h-3 w-3 mr-1" />
+              Reset
+            </Button>
+          </div>
         </div>
+        
         {uncheckedItemsCount > 0 ? (
-          <p className="text-sm text-gray-600 flex items-center gap-2">
-            <MapPin className="h-4 w-4" />
-            Optimized navigation for {uncheckedItemsCount} item{uncheckedItemsCount !== 1 ? 's' : ''} • Follow the blue path through store walkways
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-600 flex items-center gap-2">
+              <MapPin className="h-4 w-4" />
+              Route optimized for {uncheckedItemsCount} item{uncheckedItemsCount !== 1 ? 's' : ''} • Total distance minimized
+            </p>
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <Zap className="h-3 w-3" />
+              Smart routing enabled
+            </div>
+          </div>
         ) : (
           <p className="text-sm text-gray-600">All items collected! Navigate to checkout when ready.</p>
         )}
       </div>
 
+      {/* Navigation Progress */}
+      {optimalPath.length > 0 && (
+        <div className="w-full mb-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-blue-800">
+              Step {currentStep + 1} of {optimalPath.length}: {optimalPath[currentStep]?.name}
+            </span>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePreviousStep}
+                disabled={currentStep === 0}
+                className="text-xs h-7"
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNextStep}
+                disabled={currentStep === optimalPath.length - 1}
+                className="text-xs h-7"
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+          <div className="w-full bg-blue-200 rounded-full h-2">
+            <div 
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${((currentStep + 1) / optimalPath.length) * 100}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Store Map */}
       <div className="w-full h-auto relative" style={{ paddingTop: `${(svgHeight / svgWidth) * 100}%` }}>
         <svg
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
           className="absolute top-0 left-0 w-full h-full"
           preserveAspectRatio="xMidYMid meet"
         >
-          {/* Main store boundary */}
+          {/* Store boundary */}
           <rect
             x="10" y="10" width={svgWidth - 20} height={svgHeight - 20}
-            className="fill-gray-100 stroke-gray-300 stroke-2 rounded-lg"
+            className="fill-gray-50 stroke-gray-300 stroke-2"
           />
 
-          {/* Walkway markings - light gray lines to show clear paths */}
-          <g className="opacity-40">
-            {/* Main horizontal walkways */}
-            <line x1="50" y1="120" x2="920" y2="120" className="stroke-gray-500 stroke-3" />
-            <line x1="50" y1="350" x2="920" y2="350" className="stroke-gray-500 stroke-3" />
-            <line x1="50" y1="500" x2="920" y2="500" className="stroke-gray-500 stroke-3" />
-            <line x1="50" y1="640" x2="920" y2="640" className="stroke-gray-500 stroke-3" />
+          {/* Main walkway grid */}
+          <g className="opacity-30">
+            {/* Horizontal walkways */}
+            <line x1="50" y1="130" x2="920" y2="130" className="stroke-gray-400 stroke-2" />
+            <line x1="50" y1="380" x2="920" y2="380" className="stroke-gray-400 stroke-2" />
+            <line x1="50" y1="520" x2="920" y2="520" className="stroke-gray-400 stroke-2" />
+            <line x1="50" y1="650" x2="920" y2="650" className="stroke-gray-400 stroke-2" />
             
-            {/* Vertical connecting walkways */}
-            <line x1="180" y1="20" x2="180" y2="700" className="stroke-gray-500 stroke-3" />
-            <line x1="290" y1="120" x2="290" y2="700" className="stroke-gray-500 stroke-3" />
-            <line x1="385" y1="120" x2="385" y2="500" className="stroke-gray-500 stroke-3" />
-            <line x1="585" y1="120" x2="585" y2="500" className="stroke-gray-500 stroke-3" />
-            <line x1="745" y1="20" x2="745" y2="700" className="stroke-gray-500 stroke-3" />
+            {/* Vertical walkways */}
+            <line x1="190" y1="20" x2="190" y2="700" className="stroke-gray-400 stroke-2" />
+            <line x1="390" y1="20" x2="390" y2="700" className="stroke-gray-400 stroke-2" />
+            <line x1="740" y1="20" x2="740" y2="700" className="stroke-gray-400 stroke-2" />
           </g>
 
           {/* Store sections */}
@@ -94,12 +177,11 @@ export const StoreMap: React.FC<StoreMapProps> = ({ items }) => {
                 width={section.width}
                 height={section.height}
                 className={`
-                  stroke-2 rounded-sm
+                  stroke-2 cursor-pointer transition-all duration-200
                   ${hoveredSection === section.id
                     ? 'fill-blue-400 stroke-blue-600 shadow-lg'
                     : 'fill-gray-200 stroke-gray-400'
                   }
-                  transition-all duration-200 ease-in-out cursor-pointer
                 `}
                 onMouseEnter={() => handleMouseEnter(section.id)}
                 onMouseLeave={handleMouseLeave}
@@ -111,83 +193,77 @@ export const StoreMap: React.FC<StoreMapProps> = ({ items }) => {
                 textAnchor="middle"
                 dominantBaseline="middle"
                 className={`
-                  pointer-events-none
-                  font-semibold text-[8px] sm:text-[10px] md:text-xs lg:text-sm
+                  pointer-events-none font-medium text-[10px] transition-colors duration-200
                   ${hoveredSection === section.id ? 'fill-white' : 'fill-gray-700'}
-                  transition-colors duration-200 ease-in-out
                 `}
-                style={{ fontSize: Math.min(section.width / section.name.length * 1.8, section.height * 0.4, 14) }}
+                style={{ fontSize: Math.min(section.width / section.name.length * 1.8, section.height * 0.4, 12) }}
               >
                 {section.name}
               </text>
             </g>
           ))}
 
-          {/* Navigation Path - Following walkways */}
-          {pathSVG && (
+          {/* Navigation Path */}
+          {showOptimizedRoute && pathSVG && (
             <g>
-              {/* Path shadow for better visibility */}
+              {/* Path shadow */}
               <path
                 d={pathSVG}
-                className="fill-none stroke-white stroke-[6] opacity-50"
+                className="fill-none stroke-white stroke-[5] opacity-70"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
               
-              {/* Main path line */}
+              {/* Main path */}
               <path
                 d={pathSVG}
-                className="fill-none stroke-blue-600 stroke-[4] opacity-90"
-                strokeDasharray="12,6"
+                className="fill-none stroke-blue-600 stroke-[3] opacity-90"
+                strokeDasharray="8,4"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
               
-              {/* Path points */}
+              {/* Path points with current step highlighting */}
               {optimalPath.map((point, index) => (
                 <g key={`${point.name}-${index}`}>
-                  {/* Point circle */}
                   <circle
                     cx={point.x}
                     cy={point.y}
-                    r={point.type === 'entrance' ? 10 : point.type === 'checkout' ? 10 : 8}
+                    r={index === currentStep ? 12 : (point.type === 'entrance' || point.type === 'checkout' ? 8 : 6)}
                     className={`
-                      ${point.type === 'entrance' ? 'fill-green-500' : 
+                      stroke-white stroke-2 transition-all duration-300
+                      ${index === currentStep ? 'fill-yellow-500' :
+                        point.type === 'entrance' ? 'fill-green-500' : 
                         point.type === 'checkout' ? 'fill-red-500' : 'fill-blue-500'}
-                      stroke-white stroke-2
                     `}
                   />
                   
-                  {/* Step number */}
                   <text
                     x={point.x}
                     y={point.y + 1}
                     textAnchor="middle"
                     dominantBaseline="middle"
-                    className="fill-white font-bold text-xs pointer-events-none"
+                    className="fill-white font-bold text-[10px] pointer-events-none"
                   >
                     {point.type === 'entrance' ? 'S' : 
                      point.type === 'checkout' ? 'E' : 
                      optimalPath.filter(p => p.type === 'section').indexOf(point) + 1}
                   </text>
                   
-                  {/* Point label */}
-                  <text
-                    x={point.x}
-                    y={point.y - 18}
-                    textAnchor="middle"
-                    className={`
-                      font-semibold text-xs pointer-events-none
-                      ${point.type === 'entrance' ? 'fill-green-700' : 
-                        point.type === 'checkout' ? 'fill-red-700' : 'fill-blue-700'}
-                    `}
-                  >
-                    {point.name}
-                  </text>
+                  {index === currentStep && (
+                    <text
+                      x={point.x}
+                      y={point.y - 20}
+                      textAnchor="middle"
+                      className="font-bold text-sm fill-yellow-600 pointer-events-none"
+                    >
+                      You are here
+                    </text>
+                  )}
                 </g>
               ))}
 
-              {/* Direction arrows along the path */}
+              {/* Direction arrows */}
               {optimalPath.length > 1 && optimalPath.slice(0, -1).map((point, index) => {
                 const nextPoint = optimalPath[index + 1];
                 const midX = (point.x + nextPoint.x) / 2;
@@ -197,7 +273,7 @@ export const StoreMap: React.FC<StoreMapProps> = ({ items }) => {
                 return (
                   <g key={`arrow-${index}`} transform={`translate(${midX}, ${midY}) rotate(${angle})`}>
                     <polygon
-                      points="-6,-3 6,0 -6,3"
+                      points="-5,-2 5,0 -5,2"
                       className="fill-blue-600 opacity-80"
                     />
                   </g>
@@ -207,40 +283,33 @@ export const StoreMap: React.FC<StoreMapProps> = ({ items }) => {
           )}
 
           {/* Static elements */}
-          <g>
-            <rect x="880" y="15" width="80" height="30" className="fill-blue-100 stroke-blue-400 rounded-md" />
-            <text x="920" y="32" textAnchor="middle" dominantBaseline="middle" className="fill-blue-800 font-bold text-xs">Restrooms</text>
-          </g>
-
-          {/* Entrance/Exit Labels */}
-          <text x="145" y="690" textAnchor="middle" className="fill-green-700 font-bold text-lg">Entrance</text>
-          <text x="220" y="690" textAnchor="middle" className="fill-red-700 font-bold text-lg">Exit</text>
-          <text x="600" y="690" textAnchor="middle" className="fill-red-700 font-bold text-lg">Exit</text>
-          <text x="680" y="690" textAnchor="middle" className="fill-green-700 font-bold text-lg">Entrance</text>
+          <rect x="880" y="15" width="80" height="25" className="fill-blue-100 stroke-blue-400" />
+          <text x="920" y="30" textAnchor="middle" dominantBaseline="middle" className="fill-blue-800 font-bold text-[10px]">Restrooms</text>
         </svg>
       </div>
 
-      {/* Current step info */}
+      {/* Current section info */}
       {hoveredSection && (
-        <div className="mt-8 p-4 bg-gradient-to-r from-blue-100 to-indigo-100 border border-blue-300 rounded-lg shadow-md text-blue-800 text-lg font-semibold animate-fade-in">
-          You are exploring: <span className="text-blue-900">{storeSections.find(s => s.id === hoveredSection)?.name}</span>
+        <div className="mt-4 p-3 bg-gradient-to-r from-blue-100 to-indigo-100 border border-blue-300 rounded-lg shadow-sm text-blue-800 text-sm font-medium animate-fade-in">
+          Viewing: <span className="text-blue-900">{storeSections.find(s => s.id === hoveredSection)?.name}</span>
         </div>
       )}
 
-      {/* Path summary */}
+      {/* Route summary */}
       {optimalPath.length > 2 && (
-        <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200 w-full max-w-2xl">
-          <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+        <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200 w-full">
+          <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2 text-sm">
             <Navigation className="h-4 w-4" />
-            Navigation Route
+            Optimized Route ({optimalPath.length} stops)
           </h3>
-          <div className="flex flex-wrap gap-2 text-sm">
+          <div className="flex flex-wrap gap-1 text-xs">
             {optimalPath.map((point, index) => (
               <span
                 key={`${point.name}-${index}`}
                 className={`
-                  px-2 py-1 rounded text-white font-medium
-                  ${point.type === 'entrance' ? 'bg-green-500' : 
+                  px-2 py-1 rounded text-white font-medium transition-all duration-200
+                  ${index === currentStep ? 'bg-yellow-500 scale-105' :
+                    point.type === 'entrance' ? 'bg-green-500' : 
                     point.type === 'checkout' ? 'bg-red-500' : 'bg-blue-500'}
                 `}
               >
@@ -250,8 +319,9 @@ export const StoreMap: React.FC<StoreMapProps> = ({ items }) => {
               </span>
             ))}
           </div>
-          <p className="text-xs text-gray-600 mt-2">
-            Route follows store walkways for clear navigation
+          <p className="text-xs text-gray-600 mt-2 flex items-center gap-1">
+            <Zap className="h-3 w-3" />
+            Intelligent routing minimizes walking distance
           </p>
         </div>
       )}
